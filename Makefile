@@ -14,7 +14,9 @@ TARGET = $(BIN_DIR)/led_task_scheduler
     
 SOURCES = main.c\
 		src/led.c\
-		src/gpio.c
+		src/gpio.c\
+		src/scheduler.c\
+		src/timer.c
 		 
            
     

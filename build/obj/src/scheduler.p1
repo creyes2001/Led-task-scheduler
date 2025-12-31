@@ -1,0 +1,28 @@
+Version 4.0 HI-TECH Software Intermediate Code
+"3 src/scheduler.c
+[v _scheduler_int `(v ~T0 @X0 1 ef ]
+"4
+{
+[e :U _scheduler_int ]
+[f ]
+"6
+[e :UE 2 ]
+}
+"8
+[v _scheduler_run `(v ~T0 @X0 1 ef ]
+"9
+{
+[e :U _scheduler_run ]
+[f ]
+"11
+[e :UE 3 ]
+}
+"13
+[v _scheduler_tick `(v ~T0 @X0 1 ef ]
+"14
+{
+[e :U _scheduler_tick ]
+[f ]
+"16
+[e :UE 4 ]
+}
