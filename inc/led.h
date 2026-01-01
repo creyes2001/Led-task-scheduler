@@ -9,7 +9,7 @@ typedef enum {
 }led_state_t;
 
 
-void led_int(void);
+void led_init(void);
 void led_on(uint8_t led_id);
 void led_off(uint8_t led_id);
 void led_toggle(uint8_t led_id);

@@ -16,7 +16,7 @@ gpio_t led2 = {
 	.pin = 1
 };
 
-void led_int(void){
+void led_init(void){
 	//config and set as low both led's
 	gpio_init(&led1,GPIO_OUTPUT);
 	gpio_write(&led1,GPIO_LOW);

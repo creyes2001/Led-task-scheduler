@@ -1137,6 +1137,16 @@ TOSH equ 0FFEh ;#
 # 8891 "/opt/microchip/mplabx/v6.25/packs/Microchip/PIC18Fxxxx_DFP/1.7.171/xc8/pic/include/proc/pic18f4550.h"
 TOSU equ 0FFFh ;# 
 	debug_source C
+	FNCALL	_main,_led_init
+	FNCALL	_main,_scheduler_add_task
+	FNCALL	_main,_scheduler_init
+	FNCALL	_main,_scheduler_run
+	FNCALL	_main,_timer0_init
+	FNCALL	_scheduler_run,_led_task
+	FNCALL	_led_task,_led_toggle
+	FNCALL	_led_toggle,_gpio_toggle
+	FNCALL	_led_init,_gpio_init
+	FNCALL	_led_init,_gpio_write
 	FNROOT	_main
 	FNCALL	_isr,_scheduler_tick
 	FNCALL	intlevel2,_isr
@@ -1180,6 +1190,8 @@ __pidataCOMRAM:
 	db	high(0)
 
 	db	low(0)
+	global	_task_list
+	global	_task_count
 	global	_T0CONbits
 _T0CONbits	set	0xFD5
 	global	_T0CON
@@ -1213,15 +1225,29 @@ __initialization:
 psect	bssCOMRAM,class=COMRAM,space=1,noexec,lowdata
 global __pbssCOMRAM
 __pbssCOMRAM:
-_latE_shadow@gpio$F170:
+_task_list:
+       ds      35
+_task_count:
        ds      1
-_latD_shadow@gpio$F169:
+_latE_shadow@gpio$F204:
        ds      1
-_latC_shadow@gpio$F168:
+_latD_shadow@gpio$F203:
        ds      1
-_latB_shadow@gpio$F167:
+_latC_shadow@gpio$F202:
        ds      1
-_latA_shadow@gpio$F166:
+_latB_shadow@gpio$F201:
+       ds      1
+_latA_shadow@gpio$F200:
+       ds      1
+_latE_shadow@gpio$F167:
+       ds      1
+_latD_shadow@gpio$F166:
+       ds      1
+_latC_shadow@gpio$F165:
+       ds      1
+_latB_shadow@gpio$F164:
+       ds      1
+_latA_shadow@gpio$F163:
        ds      1
 _latE_shadow:
        ds      1
@@ -1268,10 +1294,10 @@ psect	cinit
 	movf	fsr1l,w
 	bnz	copy_data0
 	line	#
-; Clear objects allocated to COMRAM (10 bytes)
+; Clear objects allocated to COMRAM (51 bytes)
 	global __pbssCOMRAM
 lfsr	0,__pbssCOMRAM
-movlw	10
+movlw	51
 clear_0:
 clrf	postinc0,c
 decf	wreg
@@ -1290,28 +1316,81 @@ __end_of__initialization:
 	movwf	tblptru
 movlb 0
 goto _main	;jump to C main() function
+psect	cstackBANK0,class=BANK0,space=1,noexec,lowdata
+global __pcstackBANK0
+__pcstackBANK0:
+?_scheduler_add_task:	; 1 bytes @ 0x0
+	global	scheduler_add_task@task
+scheduler_add_task@task:	; 2 bytes @ 0x0
+??_gpio_init:	; 1 bytes @ 0x0
+??_gpio_write:	; 1 bytes @ 0x0
+??_gpio_toggle:	; 1 bytes @ 0x0
+	ds   2
+	global	scheduler_add_task@period_ms
+scheduler_add_task@period_ms:	; 2 bytes @ 0x2
+	ds   3
 psect	cstackCOMRAM,class=COMRAM,space=1,noexec,lowdata
 global __pcstackCOMRAM
 __pcstackCOMRAM:
 ?_scheduler_tick:	; 1 bytes @ 0x0
+?_led_toggle:	; 1 bytes @ 0x0
+?_led_init:	; 1 bytes @ 0x0
+?_scheduler_init:	; 1 bytes @ 0x0
+?_timer0_init:	; 1 bytes @ 0x0
+?_scheduler_run:	; 1 bytes @ 0x0
 ?_isr:	; 1 bytes @ 0x0
+?_led_task:	; 1 bytes @ 0x0
 ?_main:	; 2 bytes @ 0x0
 ??_scheduler_tick:	; 1 bytes @ 0x0
-??_isr:	; 1 bytes @ 0x0
-??_main:	; 1 bytes @ 0x0
+	ds   4
+	global	scheduler_tick@i
+scheduler_tick@i:	; 1 bytes @ 0x4
+	ds   1
+??_isr:	; 1 bytes @ 0x5
+	ds   6
+?_gpio_init:	; 1 bytes @ 0xB
+?_gpio_write:	; 1 bytes @ 0xB
+?_gpio_toggle:	; 1 bytes @ 0xB
+	global	gpio_init@p
+gpio_init@p:	; 1 bytes @ 0xB
+	global	gpio_write@p
+gpio_write@p:	; 1 bytes @ 0xB
+	global	gpio_toggle@p
+gpio_toggle@p:	; 1 bytes @ 0xB
+	global	scheduler_init@i
+scheduler_init@i:	; 1 bytes @ 0xB
+??_scheduler_init:	; 1 bytes @ 0xB
+??_timer0_init:	; 1 bytes @ 0xB
+??_scheduler_add_task:	; 1 bytes @ 0xB
+	ds   1
+	global	led_toggle@led_id
+led_toggle@led_id:	; 1 bytes @ 0xC
+	global	gpio_init@dir
+gpio_init@dir:	; 1 bytes @ 0xC
+	global	gpio_write@level
+gpio_write@level:	; 1 bytes @ 0xC
+??_led_toggle:	; 1 bytes @ 0xC
+	ds   1
+	global	scheduler_run@i
+scheduler_run@i:	; 1 bytes @ 0xD
+??_led_init:	; 1 bytes @ 0xD
+??_scheduler_run:	; 1 bytes @ 0xD
+??_led_task:	; 1 bytes @ 0xD
+	ds   1
+??_main:	; 1 bytes @ 0xE
 ;!
 ;!Data Sizes:
 ;!    Strings     0
 ;!    Constant    0
 ;!    Data        18
-;!    BSS         10
+;!    BSS         51
 ;!    Persistent  0
 ;!    Stack       0
 ;!
 ;!Auto Spaces:
 ;!    Space          Size  Autos    Used
-;!    COMRAM           94      0      28
-;!    BANK0           160      0       0
+;!    COMRAM           94     14      83
+;!    BANK0           160      5       5
 ;!    BANK1           256      0       0
 ;!    BANK2           256      0       0
 ;!    BANK3           256      0       0
@@ -1322,6 +1401,9 @@ __pcstackCOMRAM:
 
 ;!
 ;!Pointer List with Targets:
+;!
+;!    gpio_init@p	PTR struct . size(1) Largest target is 9
+;!		 -> led1(COMRAM[9]), led2(COMRAM[9]), 
 ;!
 ;!    gpio_init@p$lat	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> LATD(BIGSFR[1]), 
@@ -1347,6 +1429,9 @@ __pcstackCOMRAM:
 ;!    gpio_read@p$tris	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> TRISD(BIGSFR[1]), 
 ;!
+;!    gpio_toggle@p	PTR struct . size(1) Largest target is 9
+;!		 -> led1(COMRAM[9]), led2(COMRAM[9]), 
+;!
 ;!    gpio_toggle@p$lat	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> LATD(BIGSFR[1]), 
 ;!
@@ -1358,6 +1443,9 @@ __pcstackCOMRAM:
 ;!
 ;!    gpio_toggle@p$tris	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> TRISD(BIGSFR[1]), 
+;!
+;!    gpio_write@p	PTR struct . size(1) Largest target is 9
+;!		 -> led1(COMRAM[9]), led2(COMRAM[9]), 
 ;!
 ;!    gpio_write@p$lat	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> LATD(BIGSFR[1]), 
@@ -1395,32 +1483,46 @@ __pcstackCOMRAM:
 ;!    led2$tris	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> TRISD(BIGSFR[1]), 
 ;!
-;!    S97$lat	PTR volatile unsigned char  size(2) Largest target is 1
+;!    S131$lat	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> LATD(BIGSFR[1]), 
 ;!
-;!    S97$port	PTR volatile unsigned char  size(2) Largest target is 1
+;!    S131$port	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> PORTD(BIGSFR[1]), 
 ;!
-;!    S97$shadow	PTR unsigned char  size(2) Largest target is 0
+;!    S131$shadow	PTR unsigned char  size(2) Largest target is 0
 ;!		 -> NULL(NULL[0]), 
 ;!
-;!    S97$tris	PTR volatile unsigned char  size(2) Largest target is 1
+;!    S131$tris	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> TRISD(BIGSFR[1]), 
+;!
+;!    S236$task	PTR FTN()void  size(2) Largest target is 1
+;!		 -> led_task(), NULL(), 
+;!
+;!    scheduler_add_task@task	PTR FTN()void  size(2) Largest target is 1
+;!		 -> led_task(), 
+;!
+;!    task_list$task	PTR FTN()void  size(2) Largest target is 1
+;!		 -> led_task(), NULL(), 
 ;!
 
 
 ;!
 ;!Critical Paths under _main in COMRAM
 ;!
-;!    None.
+;!    _main->_scheduler_run
+;!    _led_task->_led_toggle
+;!    _led_toggle->_gpio_toggle
+;!    _led_init->_gpio_init
+;!    _led_init->_gpio_write
 ;!
 ;!Critical Paths under _isr in COMRAM
 ;!
-;!    None.
+;!    _isr->_scheduler_tick
 ;!
 ;!Critical Paths under _main in BANK0
 ;!
-;!    None.
+;!    _led_toggle->_gpio_toggle
+;!    _led_init->_gpio_write
 ;!
 ;!Critical Paths under _isr in BANK0
 ;!
@@ -1492,23 +1594,79 @@ __pcstackCOMRAM:
 ;! ---------------------------------------------------------------------------------
 ;! (Depth) Function   	        Calls       Base Space   Used Autos Params    Refs
 ;! ---------------------------------------------------------------------------------
-;! (0) _main                                                 0     0      0       0
+;! (0) _main                                                 0     0      0     823
+;!                           _led_init
+;!                 _scheduler_add_task
+;!                     _scheduler_init
+;!                      _scheduler_run
+;!                        _timer0_init
 ;! ---------------------------------------------------------------------------------
-;! Estimated maximum stack depth 0
+;! (1) _timer0_init                                          0     0      0       0
+;! ---------------------------------------------------------------------------------
+;! (1) _scheduler_run                                        1     1      0     307
+;!                                             13 COMRAM     1     1      0
+;!                                NULL *
+;!                           _led_task *
+;! ---------------------------------------------------------------------------------
+;! (2) _led_task                                             0     0      0     177
+;!                         _led_toggle
+;! ---------------------------------------------------------------------------------
+;! (3) _led_toggle                                           1     1      0     177
+;!                                             12 COMRAM     1     1      0
+;!                        _gpio_toggle
+;! ---------------------------------------------------------------------------------
+;! (4) _gpio_toggle                                          5     4      1     130
+;!                                             11 COMRAM     1     0      1
+;!                                              0 BANK0      4     4      0
+;! ---------------------------------------------------------------------------------
+;! (2) NULL(Fake)                                            0     0      0       0
+;! ---------------------------------------------------------------------------------
+;! (1) _scheduler_init                                       1     1      0      90
+;!                                             11 COMRAM     1     1      0
+;! ---------------------------------------------------------------------------------
+;! (1) _scheduler_add_task                                   4     0      4      68
+;!                                              0 BANK0      4     0      4
+;! ---------------------------------------------------------------------------------
+;! (1) _led_init                                             0     0      0     358
+;!                          _gpio_init
+;!                         _gpio_write
+;! ---------------------------------------------------------------------------------
+;! (2) _gpio_write                                           7     5      2     253
+;!                                             11 COMRAM     2     0      2
+;!                                              0 BANK0      5     5      0
+;! ---------------------------------------------------------------------------------
+;! (2) _gpio_init                                            4     2      2     105
+;!                                             11 COMRAM     2     0      2
+;!                                              0 BANK0      2     2      0
+;! ---------------------------------------------------------------------------------
+;! Estimated maximum stack depth 4
 ;! ---------------------------------------------------------------------------------
 ;! (Depth) Function   	        Calls       Base Space   Used Autos Params    Refs
 ;! ---------------------------------------------------------------------------------
-;! (1) _isr                                                  0     0      0       0
+;! (5) _isr                                                  6     6      0      90
+;!                                              5 COMRAM     6     6      0
 ;!                     _scheduler_tick
 ;! ---------------------------------------------------------------------------------
-;! (2) _scheduler_tick                                       0     0      0       0
+;! (6) _scheduler_tick                                       5     5      0      90
+;!                                              0 COMRAM     5     5      0
 ;! ---------------------------------------------------------------------------------
-;! Estimated maximum stack depth 2
+;! Estimated maximum stack depth 6
 ;! ---------------------------------------------------------------------------------
 ;!
 ;! Call Graph Graphs:
 ;!
 ;! _main (ROOT)
+;!   _led_init
+;!     _gpio_init
+;!     _gpio_write
+;!   _scheduler_add_task
+;!   _scheduler_init
+;!   _scheduler_run
+;!     NULL(Fake) *
+;!     _led_task *
+;!       _led_toggle
+;!         _gpio_toggle
+;!   _timer0_init
 ;!
 ;! _isr (ROOT)
 ;!   _scheduler_tick
@@ -1533,28 +1691,28 @@ __pcstackCOMRAM:
 ;!BITBANK1           256      0       0      0.0%
 ;!BANK1              256      0       0      0.0%
 ;!BITBANK0           160      0       0      0.0%
-;!BANK0              160      0       0      0.0%
+;!BANK0              160      5       5      3.1%
 ;!BITCOMRAM           94      0       0      0.0%
-;!COMRAM              94      0      28     29.8%
+;!COMRAM              94     14      83     88.3%
 ;!BITBIGSFRlh         81      0       0      0.0%
 ;!BITBIGSFRh          42      0       0      0.0%
 ;!BITBIGSFRll         35      0       0      0.0%
 ;!STACK                0      0       0      0.0%
-;!DATA                 0      0      28      0.0%
+;!DATA                 0      0      87      0.0%
 
 	global	_main
 
 ;; *************** function _main *****************
 ;; Defined at:
-;;		line 19 in file "main.c"
+;;		line 26 in file "main.c"
 ;; Parameters:    Size  Location     Type
 ;;		None
 ;; Auto vars:     Size  Location     Type
 ;;		None
 ;; Return value:  Size  Location     Type
-;;                  2   18[None  ] int 
+;;                  2   43[None  ] int 
 ;; Registers used:
-;;		None
+;;		wreg, fsr1l, fsr1h, fsr2l, fsr2h, status,2, status,0, pcl, pclath, pclatu, tosl, prodl, prodh, cstack
 ;; Tracked objects:
 ;;		On entry : 0/0
 ;;		On exit  : 0/0
@@ -1565,44 +1723,72 @@ __pcstackCOMRAM:
 ;;      Temps:          0       0       0       0       0       0       0       0       0
 ;;      Totals:         0       0       0       0       0       0       0       0       0
 ;;Total ram usage:        0 bytes
-;; Hardware stack levels required when called: 2
+;; Hardware stack levels required when called: 6
 ;; This function calls:
-;;		Nothing
+;;		_led_init
+;;		_scheduler_add_task
+;;		_scheduler_init
+;;		_scheduler_run
+;;		_timer0_init
 ;; This function is called by:
 ;;		Startup code after reset
 ;; This function uses a non-reentrant model
 ;;
 psect	text0,class=CODE,space=0,reloc=2,group=0
 	file	"main.c"
-	line	19
+	line	26
 global __ptext0
 __ptext0:
 psect	text0
 	file	"main.c"
-	line	19
+	line	26
 	
 _main:
 ;incstack = 0
-	callstack 29
-	line	21
+	callstack 25
+	line	28
 	
-l19:
-	line	24
+l1232:
+	call	_led_init	;wreg free
+	line	29
 	
-l20:
-	goto	l19
+l1234:
+	call	_scheduler_init	;wreg free
+	line	30
+	
+l1236:
+	call	_timer0_init	;wreg free
+	line	32
+	
+l1238:
+		movlw	low(_led_task)
+	movlb	0	; () banked
+	movwf	((scheduler_add_task@task))&0ffh
+	movlw	high(_led_task)
+	movwf	((scheduler_add_task@task+1))&0ffh
+
+	movlw	high(01F4h)
+	movwf	((scheduler_add_task@period_ms+1))&0ffh
+	movlw	low(01F4h)
+	movwf	((scheduler_add_task@period_ms))&0ffh
+	call	_scheduler_add_task	;wreg free
+	line	36
+	
+l1240:
+	call	_scheduler_run	;wreg free
+	goto	l1240
 	global	start
 	goto	start
 	callstack 0
-	line	26
+	line	39
 GLOBAL	__end_of_main
 	__end_of_main:
 	signat	_main,90
-	global	_isr
+	global	_timer0_init
 
-;; *************** function _isr *****************
+;; *************** function _timer0_init *****************
 ;; Defined at:
-;;		line 5 in file "main.c"
+;;		line 4 in file "src/timer.c"
 ;; Parameters:    Size  Location     Type
 ;;		None
 ;; Auto vars:     Size  Location     Type
@@ -1610,7 +1796,7 @@ GLOBAL	__end_of_main
 ;; Return value:  Size  Location     Type
 ;;                  1    wreg      void 
 ;; Registers used:
-;;		wreg, status,2, cstack
+;;		wreg, status,2
 ;; Tracked objects:
 ;;		On entry : 0/0
 ;;		On exit  : 0/0
@@ -1621,6 +1807,1034 @@ GLOBAL	__end_of_main
 ;;      Temps:          0       0       0       0       0       0       0       0       0
 ;;      Totals:         0       0       0       0       0       0       0       0       0
 ;;Total ram usage:        0 bytes
+;; Hardware stack levels used: 1
+;; Hardware stack levels required when called: 2
+;; This function calls:
+;;		Nothing
+;; This function is called by:
+;;		_main
+;; This function uses a non-reentrant model
+;;
+psect	text1,class=CODE,space=0,reloc=2,group=0
+	file	"src/timer.c"
+	line	4
+global __ptext1
+__ptext1:
+psect	text1
+	file	"src/timer.c"
+	line	4
+	
+_timer0_init:
+;incstack = 0
+	callstack 28
+	line	11
+	
+l1012:
+	clrf	((c:4053))^0f00h,c	;volatile
+	line	12
+	bcf	((c:4053))^0f00h,c,6	;volatile
+	line	13
+	bcf	((c:4053))^0f00h,c,5	;volatile
+	line	14
+	bcf	((c:4053))^0f00h,c,3	;volatile
+	line	15
+	
+l1014:
+	movf	((c:4053))^0f00h,c,w	;volatile
+	andlw	not (((1<<3)-1)<<0)
+	iorlw	(02h & ((1<<3)-1))<<0
+	movwf	((c:4053))^0f00h,c	;volatile
+	line	18
+	movlw	low(0F6h)
+	movwf	((c:4055))^0f00h,c	;volatile
+	line	19
+	movlw	low(03Ch)
+	movwf	((c:4054))^0f00h,c	;volatile
+	line	21
+	
+l1016:
+	bcf	((c:4082))^0f00h,c,2	;volatile
+	line	22
+	
+l1018:
+	bsf	((c:4082))^0f00h,c,5	;volatile
+	line	24
+	
+l1020:
+	bsf	((c:4053))^0f00h,c,7	;volatile
+	line	26
+	
+l166:
+	return	;funcret
+	callstack 0
+GLOBAL	__end_of_timer0_init
+	__end_of_timer0_init:
+	signat	_timer0_init,89
+	global	_scheduler_run
+
+;; *************** function _scheduler_run *****************
+;; Defined at:
+;;		line 19 in file "src/scheduler.c"
+;; Parameters:    Size  Location     Type
+;;		None
+;; Auto vars:     Size  Location     Type
+;;  i               1   13[COMRAM] unsigned char 
+;; Return value:  Size  Location     Type
+;;                  1    wreg      void 
+;; Registers used:
+;;		wreg, fsr1l, fsr1h, fsr2l, fsr2h, status,2, status,0, pcl, pclath, pclatu, tosl, prodl, prodh, cstack
+;; Tracked objects:
+;;		On entry : 0/0
+;;		On exit  : 0/0
+;;		Unchanged: 0/0
+;; Data sizes:     COMRAM   BANK0   BANK1   BANK2   BANK3   BANK4   BANK5   BANK6   BANK7
+;;      Params:         0       0       0       0       0       0       0       0       0
+;;      Locals:         1       0       0       0       0       0       0       0       0
+;;      Temps:          0       0       0       0       0       0       0       0       0
+;;      Totals:         1       0       0       0       0       0       0       0       0
+;;Total ram usage:        1 bytes
+;; Hardware stack levels used: 1
+;; Hardware stack levels required when called: 5
+;; This function calls:
+;;		NULL
+;;		_led_task
+;; This function is called by:
+;;		_main
+;; This function uses a non-reentrant model
+;;
+psect	text2,class=CODE,space=0,reloc=2,group=0
+	file	"src/scheduler.c"
+	line	19
+global __ptext2
+__ptext2:
+psect	text2
+	file	"src/scheduler.c"
+	line	19
+	
+_scheduler_run:
+;incstack = 0
+	callstack 25
+	line	21
+	
+l1220:
+	clrf	((c:scheduler_run@i))^00h,c
+	goto	l1230
+	line	23
+	
+l1222:
+	movf	((c:scheduler_run@i))^00h,c,w
+	mullw	07h
+	movf	(prodl)^0f00h,c,w
+	addlw	low(_task_list+06h)
+	movwf	fsr2l
+	clrf	fsr2h
+	movf	indf2,w
+	btfsc	status,2
+	goto	u291
+	goto	u290
+u291:
+	goto	l1228
+u290:
+	line	25
+	
+l1224:
+	movf	((c:scheduler_run@i))^00h,c,w
+	mullw	07h
+	movf	(prodl)^0f00h,c,w
+	addlw	low(_task_list+06h)
+	movwf	fsr2l
+	clrf	fsr2h
+	clrf	indf2
+	line	26
+	
+l1226:
+	movf	((c:scheduler_run@i))^00h,c,w
+	mullw	07h
+	movf	(prodl)^0f00h,c,w
+	addlw	low(_task_list)
+	movwf	fsr2l
+	clrf	fsr2h
+	call	u308
+	goto	u309
+u308:
+	push
+	movwf	pclath
+	movf	postinc2,w
+	movwf	tosl
+	movf	postinc2,w
+	movwf	tosl+1
+	clrf 	tosl+2
+	movf	pclath,w
+	
+	return	;indir
+	u309:
+	line	28
+	
+l1228:
+	incf	((c:scheduler_run@i))^00h,c
+	
+l1230:
+		movf	((c:_task_count))^00h,c,w
+	subwf	((c:scheduler_run@i))^00h,c,w
+	btfss	status,0
+	goto	u311
+	goto	u310
+
+u311:
+	goto	l1222
+u310:
+	line	29
+	
+l142:
+	return	;funcret
+	callstack 0
+GLOBAL	__end_of_scheduler_run
+	__end_of_scheduler_run:
+	signat	_scheduler_run,89
+	global	_led_task
+
+;; *************** function _led_task *****************
+;; Defined at:
+;;		line 21 in file "main.c"
+;; Parameters:    Size  Location     Type
+;;		None
+;; Auto vars:     Size  Location     Type
+;;		None
+;; Return value:  Size  Location     Type
+;;                  1    wreg      void 
+;; Registers used:
+;;		wreg, fsr1l, fsr1h, fsr2l, fsr2h, status,2, status,0, cstack
+;; Tracked objects:
+;;		On entry : 0/0
+;;		On exit  : 0/0
+;;		Unchanged: 0/0
+;; Data sizes:     COMRAM   BANK0   BANK1   BANK2   BANK3   BANK4   BANK5   BANK6   BANK7
+;;      Params:         0       0       0       0       0       0       0       0       0
+;;      Locals:         0       0       0       0       0       0       0       0       0
+;;      Temps:          0       0       0       0       0       0       0       0       0
+;;      Totals:         0       0       0       0       0       0       0       0       0
+;;Total ram usage:        0 bytes
+;; Hardware stack levels used: 1
+;; Hardware stack levels required when called: 4
+;; This function calls:
+;;		_led_toggle
+;; This function is called by:
+;;		_main
+;;		_scheduler_run
+;; This function uses a non-reentrant model
+;;
+psect	text3,class=CODE,space=0,reloc=2,group=0
+	file	"main.c"
+	line	21
+global __ptext3
+__ptext3:
+psect	text3
+	file	"main.c"
+	line	21
+	
+_led_task:
+;incstack = 0
+	callstack 25
+	line	23
+	
+l1188:
+	movlw	(0)&0ffh
+	
+	call	_led_toggle
+	line	24
+	
+l39:
+	return	;funcret
+	callstack 0
+GLOBAL	__end_of_led_task
+	__end_of_led_task:
+	signat	_led_task,89
+	global	_led_toggle
+
+;; *************** function _led_toggle *****************
+;; Defined at:
+;;		line 55 in file "src/led.c"
+;; Parameters:    Size  Location     Type
+;;  led_id          1    wreg     unsigned char 
+;; Auto vars:     Size  Location     Type
+;;  led_id          1   12[COMRAM] unsigned char 
+;; Return value:  Size  Location     Type
+;;                  1    wreg      void 
+;; Registers used:
+;;		wreg, fsr1l, fsr1h, fsr2l, fsr2h, status,2, status,0, cstack
+;; Tracked objects:
+;;		On entry : 0/0
+;;		On exit  : 0/0
+;;		Unchanged: 0/0
+;; Data sizes:     COMRAM   BANK0   BANK1   BANK2   BANK3   BANK4   BANK5   BANK6   BANK7
+;;      Params:         0       0       0       0       0       0       0       0       0
+;;      Locals:         1       0       0       0       0       0       0       0       0
+;;      Temps:          0       0       0       0       0       0       0       0       0
+;;      Totals:         1       0       0       0       0       0       0       0       0
+;;Total ram usage:        1 bytes
+;; Hardware stack levels used: 1
+;; Hardware stack levels required when called: 3
+;; This function calls:
+;;		_gpio_toggle
+;; This function is called by:
+;;		_led_task
+;; This function uses a non-reentrant model
+;;
+psect	text4,class=CODE,space=0,reloc=2,group=0
+	file	"src/led.c"
+	line	55
+global __ptext4
+__ptext4:
+psect	text4
+	file	"src/led.c"
+	line	55
+	
+_led_toggle:
+;incstack = 0
+	callstack 25
+	movwf	((c:led_toggle@led_id))^00h,c
+	line	56
+	
+l1178:
+	goto	l1186
+	line	59
+	
+l1180:
+		movlw	low(_led1)
+	movwf	((c:gpio_toggle@p))^00h,c
+
+	call	_gpio_toggle	;wreg free
+	line	60
+	goto	l100
+	line	62
+	
+l1182:
+		movlw	low(_led2)
+	movwf	((c:gpio_toggle@p))^00h,c
+
+	call	_gpio_toggle	;wreg free
+	line	63
+	goto	l100
+	line	66
+	
+l1186:
+	movf	((c:led_toggle@led_id))^00h,c,w
+	; Switch size 1, requested type "simple"
+; Number of cases is 2, Range of values is 0 to 1
+; switch strategies available:
+; Name         Instructions Cycles
+; simple_byte            7     4 (average)
+;	Chosen strategy is simple_byte
+
+	xorlw	0^0	; case 0
+	skipnz
+	goto	l1180
+	xorlw	1^0	; case 1
+	skipnz
+	goto	l1182
+	goto	l100
+
+	line	67
+	
+l100:
+	return	;funcret
+	callstack 0
+GLOBAL	__end_of_led_toggle
+	__end_of_led_toggle:
+	signat	_led_toggle,4217
+	global	_gpio_toggle
+
+;; *************** function _gpio_toggle *****************
+;; Defined at:
+;;		line 27 in file "src/gpio.c"
+;; Parameters:    Size  Location     Type
+;;  p               1   11[COMRAM] PTR struct .
+;;		 -> led2(9), led1(9), 
+;; Auto vars:     Size  Location     Type
+;;		None
+;; Return value:  Size  Location     Type
+;;                  1    wreg      void 
+;; Registers used:
+;;		wreg, fsr1l, fsr1h, fsr2l, fsr2h, status,2, status,0
+;; Tracked objects:
+;;		On entry : 0/0
+;;		On exit  : 0/0
+;;		Unchanged: 0/0
+;; Data sizes:     COMRAM   BANK0   BANK1   BANK2   BANK3   BANK4   BANK5   BANK6   BANK7
+;;      Params:         1       0       0       0       0       0       0       0       0
+;;      Locals:         0       0       0       0       0       0       0       0       0
+;;      Temps:          0       4       0       0       0       0       0       0       0
+;;      Totals:         1       4       0       0       0       0       0       0       0
+;;Total ram usage:        5 bytes
+;; Hardware stack levels used: 1
+;; Hardware stack levels required when called: 2
+;; This function calls:
+;;		Nothing
+;; This function is called by:
+;;		_led_toggle
+;; This function uses a non-reentrant model
+;;
+psect	text5,class=CODE,space=0,reloc=2,group=0
+	file	"src/gpio.c"
+	line	27
+global __ptext5
+__ptext5:
+psect	text5
+	file	"src/gpio.c"
+	line	27
+	
+_gpio_toggle:
+;incstack = 0
+	callstack 25
+	line	28
+	
+l1174:
+	movf	((c:gpio_toggle@p))^00h,c,w
+	movwf	fsr2l
+	clrf	fsr2h
+	movlw	low(08h)
+	addwf	fsr2l
+
+	movf	indf2,w
+	movlb	0	; () banked
+	movwf	(??_gpio_toggle+0)&0ffh
+	movlw	(01h)&0ffh
+	movwf	(??_gpio_toggle+1)&0ffh
+	incf	((??_gpio_toggle+0))&0ffh
+	goto	u234
+u235:
+	bcf	status,0
+	rlcf	((??_gpio_toggle+1))&0ffh
+u234:
+	decfsz	((??_gpio_toggle+0))&0ffh
+	goto	u235
+	movf	((c:gpio_toggle@p))^00h,c,w
+	movwf	fsr2l
+	clrf	fsr2h
+	movlw	low(06h)
+	addwf	fsr2l
+
+	movff	postinc2,??_gpio_toggle+2
+	movff	postdec2,??_gpio_toggle+2+1
+	movff	??_gpio_toggle+2,fsr2l
+	movff	??_gpio_toggle+2+1,fsr2h
+	movlb	0	; () banked
+	movf	((??_gpio_toggle+1))&0ffh,w
+	xorwf	indf2
+	line	29
+	
+l1176:; BSR set to: 0
+
+	movf	((c:gpio_toggle@p))^00h,c,w
+	movwf	fsr2l
+	clrf	fsr2h
+	movlw	low(06h)
+	addwf	fsr2l
+
+	movff	postinc2,??_gpio_toggle+0
+	movff	postdec2,??_gpio_toggle+0+1
+	movff	??_gpio_toggle+0,fsr2l
+	movff	??_gpio_toggle+0+1,fsr2h
+	movf	((c:gpio_toggle@p))^00h,c,w
+	movwf	fsr1l
+	clrf	fsr1h
+	movlw	low(02h)
+	addwf	fsr1l
+
+	movff	postinc1,??_gpio_toggle+2
+	movff	postdec1,??_gpio_toggle+2+1
+	movff	??_gpio_toggle+2,fsr1l
+	movff	??_gpio_toggle+2+1,fsr1h
+	movff	indf2,indf1
+	line	30
+	
+l126:; BSR set to: 0
+
+	return	;funcret
+	callstack 0
+GLOBAL	__end_of_gpio_toggle
+	__end_of_gpio_toggle:
+	signat	_gpio_toggle,4217
+	global	_scheduler_init
+
+;; *************** function _scheduler_init *****************
+;; Defined at:
+;;		line 6 in file "src/scheduler.c"
+;; Parameters:    Size  Location     Type
+;;		None
+;; Auto vars:     Size  Location     Type
+;;  i               1   11[COMRAM] unsigned char 
+;; Return value:  Size  Location     Type
+;;                  1    wreg      void 
+;; Registers used:
+;;		wreg, fsr2l, fsr2h, status,2, status,0, prodl, prodh
+;; Tracked objects:
+;;		On entry : 0/0
+;;		On exit  : 0/0
+;;		Unchanged: 0/0
+;; Data sizes:     COMRAM   BANK0   BANK1   BANK2   BANK3   BANK4   BANK5   BANK6   BANK7
+;;      Params:         0       0       0       0       0       0       0       0       0
+;;      Locals:         1       0       0       0       0       0       0       0       0
+;;      Temps:          0       0       0       0       0       0       0       0       0
+;;      Totals:         1       0       0       0       0       0       0       0       0
+;;Total ram usage:        1 bytes
+;; Hardware stack levels used: 1
+;; Hardware stack levels required when called: 2
+;; This function calls:
+;;		Nothing
+;; This function is called by:
+;;		_main
+;; This function uses a non-reentrant model
+;;
+psect	text6,class=CODE,space=0,reloc=2,group=0
+	file	"src/scheduler.c"
+	line	6
+global __ptext6
+__ptext6:
+psect	text6
+	file	"src/scheduler.c"
+	line	6
+	
+_scheduler_init:; BSR set to: 0
+
+;incstack = 0
+	callstack 28
+	line	8
+	
+l1000:
+	clrf	((c:scheduler_init@i))^00h,c
+	line	10
+	
+l1006:
+	movf	((c:scheduler_init@i))^00h,c,w
+	mullw	07h
+	movf	(prodl)^0f00h,c,w
+	addlw	low(_task_list)
+	movwf	fsr2l
+	clrf	fsr2h
+	clrf	postinc2
+	clrf	postdec2
+	line	11
+	movf	((c:scheduler_init@i))^00h,c,w
+	mullw	07h
+	movf	(prodl)^0f00h,c,w
+	addlw	low(_task_list+02h)
+	movwf	fsr2l
+	clrf	fsr2h
+	clrf	postinc2
+	clrf	postdec2
+	line	12
+	movf	((c:scheduler_init@i))^00h,c,w
+	mullw	07h
+	movf	(prodl)^0f00h,c,w
+	addlw	low(_task_list+04h)
+	movwf	fsr2l
+	clrf	fsr2h
+	clrf	postinc2
+	clrf	postdec2
+	line	13
+	movf	((c:scheduler_init@i))^00h,c,w
+	mullw	07h
+	movf	(prodl)^0f00h,c,w
+	addlw	low(_task_list+06h)
+	movwf	fsr2l
+	clrf	fsr2h
+	clrf	indf2
+	line	14
+	
+l1008:
+	incf	((c:scheduler_init@i))^00h,c
+	
+l1010:
+		movlw	05h-1
+	cpfsgt	((c:scheduler_init@i))^00h,c
+	goto	u81
+	goto	u80
+
+u81:
+	goto	l1006
+u80:
+	
+l134:
+	line	16
+	clrf	((c:_task_count))^00h,c
+	line	17
+	
+l135:
+	return	;funcret
+	callstack 0
+GLOBAL	__end_of_scheduler_init
+	__end_of_scheduler_init:
+	signat	_scheduler_init,89
+	global	_scheduler_add_task
+
+;; *************** function _scheduler_add_task *****************
+;; Defined at:
+;;		line 45 in file "src/scheduler.c"
+;; Parameters:    Size  Location     Type
+;;  task            2    0[BANK0 ] PTR FTN()void 
+;;		 -> led_task(1), 
+;;  period_ms       2    2[BANK0 ] unsigned short 
+;; Auto vars:     Size  Location     Type
+;;		None
+;; Return value:  Size  Location     Type
+;;                  1    wreg      unsigned char 
+;; Registers used:
+;;		wreg, fsr2l, fsr2h, status,2, status,0, prodl, prodh
+;; Tracked objects:
+;;		On entry : 0/0
+;;		On exit  : 0/0
+;;		Unchanged: 0/0
+;; Data sizes:     COMRAM   BANK0   BANK1   BANK2   BANK3   BANK4   BANK5   BANK6   BANK7
+;;      Params:         0       4       0       0       0       0       0       0       0
+;;      Locals:         0       0       0       0       0       0       0       0       0
+;;      Temps:          0       0       0       0       0       0       0       0       0
+;;      Totals:         0       4       0       0       0       0       0       0       0
+;;Total ram usage:        4 bytes
+;; Hardware stack levels used: 1
+;; Hardware stack levels required when called: 2
+;; This function calls:
+;;		Nothing
+;; This function is called by:
+;;		_main
+;; This function uses a non-reentrant model
+;;
+psect	text7,class=CODE,space=0,reloc=2,group=0
+	line	45
+global __ptext7
+__ptext7:
+psect	text7
+	file	"src/scheduler.c"
+	line	45
+	
+_scheduler_add_task:
+;incstack = 0
+	callstack 28
+	line	47
+	
+l1210:
+		movlw	05h-1
+	cpfsgt	((c:_task_count))^00h,c
+	goto	u281
+	goto	u280
+
+u281:
+	goto	l1214
+u280:
+	goto	l153
+	line	52
+	
+l1214:
+	movf	((c:_task_count))^00h,c,w
+	mullw	07h
+	movf	(prodl)^0f00h,c,w
+	addlw	low(_task_list)
+	movwf	fsr2l
+	clrf	fsr2h
+	movff	(scheduler_add_task@task),postinc2
+	movff	(scheduler_add_task@task+1),postdec2
+	line	53
+	movf	((c:_task_count))^00h,c,w
+	mullw	07h
+	movf	(prodl)^0f00h,c,w
+	addlw	low(_task_list+02h)
+	movwf	fsr2l
+	clrf	fsr2h
+	movff	(scheduler_add_task@period_ms),postinc2
+	movff	(scheduler_add_task@period_ms+1),postdec2
+	line	54
+	movf	((c:_task_count))^00h,c,w
+	mullw	07h
+	movf	(prodl)^0f00h,c,w
+	addlw	low(_task_list+04h)
+	movwf	fsr2l
+	clrf	fsr2h
+	clrf	postinc2
+	clrf	postdec2
+	line	55
+	movf	((c:_task_count))^00h,c,w
+	mullw	07h
+	movf	(prodl)^0f00h,c,w
+	addlw	low(_task_list+06h)
+	movwf	fsr2l
+	clrf	fsr2h
+	clrf	indf2
+	line	57
+	
+l1216:
+	incf	((c:_task_count))^00h,c
+	line	59
+	
+l153:
+	return	;funcret
+	callstack 0
+GLOBAL	__end_of_scheduler_add_task
+	__end_of_scheduler_add_task:
+	signat	_scheduler_add_task,8313
+	global	_led_init
+
+;; *************** function _led_init *****************
+;; Defined at:
+;;		line 19 in file "src/led.c"
+;; Parameters:    Size  Location     Type
+;;		None
+;; Auto vars:     Size  Location     Type
+;;		None
+;; Return value:  Size  Location     Type
+;;                  1    wreg      void 
+;; Registers used:
+;;		wreg, fsr1l, fsr1h, fsr2l, fsr2h, status,2, status,0, cstack
+;; Tracked objects:
+;;		On entry : 0/0
+;;		On exit  : 0/0
+;;		Unchanged: 0/0
+;; Data sizes:     COMRAM   BANK0   BANK1   BANK2   BANK3   BANK4   BANK5   BANK6   BANK7
+;;      Params:         0       0       0       0       0       0       0       0       0
+;;      Locals:         0       0       0       0       0       0       0       0       0
+;;      Temps:          0       0       0       0       0       0       0       0       0
+;;      Totals:         0       0       0       0       0       0       0       0       0
+;;Total ram usage:        0 bytes
+;; Hardware stack levels used: 1
+;; Hardware stack levels required when called: 3
+;; This function calls:
+;;		_gpio_init
+;;		_gpio_write
+;; This function is called by:
+;;		_main
+;; This function uses a non-reentrant model
+;;
+psect	text8,class=CODE,space=0,reloc=2,group=0
+	file	"src/led.c"
+	line	19
+global __ptext8
+__ptext8:
+psect	text8
+	file	"src/led.c"
+	line	19
+	
+_led_init:
+;incstack = 0
+	callstack 27
+	line	21
+	
+l1204:
+		movlw	low(_led1)
+	movwf	((c:gpio_init@p))^00h,c
+
+	movlw	low(0)
+	movwf	((c:gpio_init@dir))^00h,c
+	call	_gpio_init	;wreg free
+	line	22
+	
+l1206:
+		movlw	low(_led1)
+	movwf	((c:gpio_write@p))^00h,c
+
+	movlw	low(0)
+	movwf	((c:gpio_write@level))^00h,c
+	call	_gpio_write	;wreg free
+	line	23
+	
+l1208:
+		movlw	low(_led2)
+	movwf	((c:gpio_init@p))^00h,c
+
+	movlw	low(0)
+	movwf	((c:gpio_init@dir))^00h,c
+	call	_gpio_init	;wreg free
+	line	24
+		movlw	low(_led2)
+	movwf	((c:gpio_write@p))^00h,c
+
+	movlw	low(0)
+	movwf	((c:gpio_write@level))^00h,c
+	call	_gpio_write	;wreg free
+	line	25
+	
+l76:
+	return	;funcret
+	callstack 0
+GLOBAL	__end_of_led_init
+	__end_of_led_init:
+	signat	_led_init,89
+	global	_gpio_write
+
+;; *************** function _gpio_write *****************
+;; Defined at:
+;;		line 12 in file "src/gpio.c"
+;; Parameters:    Size  Location     Type
+;;  p               1   11[COMRAM] PTR struct .
+;;		 -> led2(9), led1(9), 
+;;  level           1   12[COMRAM] enum E45
+;; Auto vars:     Size  Location     Type
+;;		None
+;; Return value:  Size  Location     Type
+;;                  1    wreg      void 
+;; Registers used:
+;;		wreg, fsr1l, fsr1h, fsr2l, fsr2h, status,2, status,0
+;; Tracked objects:
+;;		On entry : 0/0
+;;		On exit  : 0/0
+;;		Unchanged: 0/0
+;; Data sizes:     COMRAM   BANK0   BANK1   BANK2   BANK3   BANK4   BANK5   BANK6   BANK7
+;;      Params:         2       0       0       0       0       0       0       0       0
+;;      Locals:         0       0       0       0       0       0       0       0       0
+;;      Temps:          0       5       0       0       0       0       0       0       0
+;;      Totals:         2       5       0       0       0       0       0       0       0
+;;Total ram usage:        7 bytes
+;; Hardware stack levels used: 1
+;; Hardware stack levels required when called: 2
+;; This function calls:
+;;		Nothing
+;; This function is called by:
+;;		_led_init
+;;		_led_on
+;;		_led_off
+;; This function uses a non-reentrant model
+;;
+psect	text9,class=CODE,space=0,reloc=2,group=0
+	file	"src/gpio.c"
+	line	12
+global __ptext9
+__ptext9:
+psect	text9
+	file	"src/gpio.c"
+	line	12
+	
+_gpio_write:
+;incstack = 0
+	callstack 27
+	line	13
+	
+l1196:
+		decf	((c:gpio_write@level))^00h,c,w
+	btfss	status,2
+	goto	u251
+	goto	u250
+
+u251:
+	goto	l1200
+u250:
+	line	14
+	
+l1198:
+	movf	((c:gpio_write@p))^00h,c,w
+	movwf	fsr2l
+	clrf	fsr2h
+	movlw	low(08h)
+	addwf	fsr2l
+
+	movf	indf2,w
+	movlb	0	; () banked
+	movwf	(??_gpio_write+0)&0ffh
+	movlw	(01h)&0ffh
+	movwf	(??_gpio_write+1)&0ffh
+	incf	((??_gpio_write+0))&0ffh
+	goto	u264
+u265:
+	bcf	status,0
+	rlcf	((??_gpio_write+1))&0ffh
+u264:
+	decfsz	((??_gpio_write+0))&0ffh
+	goto	u265
+	movf	((c:gpio_write@p))^00h,c,w
+	movwf	fsr2l
+	clrf	fsr2h
+	movlw	low(06h)
+	addwf	fsr2l
+
+	movff	postinc2,??_gpio_write+2
+	movff	postdec2,??_gpio_write+2+1
+	movff	??_gpio_write+2,fsr2l
+	movff	??_gpio_write+2+1,fsr2h
+	movlb	0	; () banked
+	movf	((??_gpio_write+1))&0ffh,w
+	iorwf	indf2
+	line	15
+	goto	l1202
+	line	18
+	
+l1200:
+	movf	((c:gpio_write@p))^00h,c,w
+	movwf	fsr2l
+	clrf	fsr2h
+	movlw	low(08h)
+	addwf	fsr2l
+
+	movf	indf2,w
+	movlb	0	; () banked
+	movwf	(??_gpio_write+0)&0ffh
+	movlw	(01h)&0ffh
+	movwf	(??_gpio_write+1)&0ffh
+	incf	((??_gpio_write+0))&0ffh
+	goto	u274
+u275:
+	bcf	status,0
+	rlcf	((??_gpio_write+1))&0ffh
+u274:
+	decfsz	((??_gpio_write+0))&0ffh
+	goto	u275
+	movlb	0	; () banked
+	movf	((??_gpio_write+1))&0ffh,w
+	xorlw	0ffh
+	movwf	(??_gpio_write+2)&0ffh
+	movf	((c:gpio_write@p))^00h,c,w
+	movwf	fsr2l
+	clrf	fsr2h
+	movlw	low(06h)
+	addwf	fsr2l
+
+	movff	postinc2,??_gpio_write+3
+	movff	postdec2,??_gpio_write+3+1
+	movff	??_gpio_write+3,fsr2l
+	movff	??_gpio_write+3+1,fsr2h
+	movf	((??_gpio_write+2))&0ffh,w
+	andwf	indf2
+	line	20
+	
+l1202:; BSR set to: 0
+
+	movf	((c:gpio_write@p))^00h,c,w
+	movwf	fsr2l
+	clrf	fsr2h
+	movlw	low(06h)
+	addwf	fsr2l
+
+	movff	postinc2,??_gpio_write+0
+	movff	postdec2,??_gpio_write+0+1
+	movff	??_gpio_write+0,fsr2l
+	movff	??_gpio_write+0+1,fsr2h
+	movf	((c:gpio_write@p))^00h,c,w
+	movwf	fsr1l
+	clrf	fsr1h
+	movlw	low(02h)
+	addwf	fsr1l
+
+	movff	postinc1,??_gpio_write+2
+	movff	postdec1,??_gpio_write+2+1
+	movff	??_gpio_write+2,fsr1l
+	movff	??_gpio_write+2+1,fsr1h
+	movff	indf2,indf1
+	line	21
+	
+l120:; BSR set to: 0
+
+	return	;funcret
+	callstack 0
+GLOBAL	__end_of_gpio_write
+	__end_of_gpio_write:
+	signat	_gpio_write,8313
+	global	_gpio_init
+
+;; *************** function _gpio_init *****************
+;; Defined at:
+;;		line 3 in file "src/gpio.c"
+;; Parameters:    Size  Location     Type
+;;  p               1   11[COMRAM] PTR struct .
+;;		 -> led2(9), led1(9), 
+;;  dir             1   12[COMRAM] enum E41
+;; Auto vars:     Size  Location     Type
+;;		None
+;; Return value:  Size  Location     Type
+;;                  1    wreg      void 
+;; Registers used:
+;;		wreg, fsr2l, fsr2h, status,2
+;; Tracked objects:
+;;		On entry : 0/0
+;;		On exit  : 0/0
+;;		Unchanged: 0/0
+;; Data sizes:     COMRAM   BANK0   BANK1   BANK2   BANK3   BANK4   BANK5   BANK6   BANK7
+;;      Params:         2       0       0       0       0       0       0       0       0
+;;      Locals:         0       0       0       0       0       0       0       0       0
+;;      Temps:          0       2       0       0       0       0       0       0       0
+;;      Totals:         2       2       0       0       0       0       0       0       0
+;;Total ram usage:        4 bytes
+;; Hardware stack levels used: 1
+;; Hardware stack levels required when called: 2
+;; This function calls:
+;;		Nothing
+;; This function is called by:
+;;		_led_init
+;; This function uses a non-reentrant model
+;;
+psect	text10,class=CODE,space=0,reloc=2,group=0
+	line	3
+global __ptext10
+__ptext10:
+psect	text10
+	file	"src/gpio.c"
+	line	3
+	
+_gpio_init:; BSR set to: 0
+
+;incstack = 0
+	callstack 27
+	line	4
+	
+l1190:
+	movf	((c:gpio_init@dir))^00h,c,w
+	btfss	status,2
+	goto	u241
+	goto	u240
+u241:
+	goto	l1194
+u240:
+	line	5
+	
+l1192:
+	movf	((c:gpio_init@p))^00h,c,w
+	movwf	fsr2l
+	clrf	fsr2h
+	movff	postinc2,??_gpio_init+0
+	movff	postdec2,??_gpio_init+0+1
+	movff	??_gpio_init+0,fsr2l
+	movff	??_gpio_init+0+1,fsr2h
+	clrf	indf2
+	line	6
+	goto	l115
+	line	8
+	
+l1194:
+	movf	((c:gpio_init@p))^00h,c,w
+	movwf	fsr2l
+	clrf	fsr2h
+	movff	postinc2,??_gpio_init+0
+	movff	postdec2,??_gpio_init+0+1
+	movff	??_gpio_init+0,fsr2l
+	movff	??_gpio_init+0+1,fsr2h
+	movlw	low(01h)
+	movwf	indf2
+	line	10
+	
+l115:
+	return	;funcret
+	callstack 0
+GLOBAL	__end_of_gpio_init
+	__end_of_gpio_init:
+	signat	_gpio_init,8313
+	global	_isr
+
+;; *************** function _isr *****************
+;; Defined at:
+;;		line 7 in file "main.c"
+;; Parameters:    Size  Location     Type
+;;		None
+;; Auto vars:     Size  Location     Type
+;;		None
+;; Return value:  Size  Location     Type
+;;                  1    wreg      void 
+;; Registers used:
+;;		wreg, fsr1l, fsr1h, fsr2l, fsr2h, status,2, status,0, prodl, prodh, cstack
+;; Tracked objects:
+;;		On entry : 0/0
+;;		On exit  : 0/0
+;;		Unchanged: 0/0
+;; Data sizes:     COMRAM   BANK0   BANK1   BANK2   BANK3   BANK4   BANK5   BANK6   BANK7
+;;      Params:         0       0       0       0       0       0       0       0       0
+;;      Locals:         0       0       0       0       0       0       0       0       0
+;;      Temps:          6       0       0       0       0       0       0       0       0
+;;      Totals:         6       0       0       0       0       0       0       0       0
+;;Total ram usage:        6 bytes
 ;; Hardware stack levels used: 1
 ;; Hardware stack levels required when called: 1
 ;; This function calls:
@@ -1636,11 +2850,11 @@ global __pintcode
 __pintcode:
 psect	intcode
 	file	"main.c"
-	line	5
+	line	7
 	
 _isr:
 ;incstack = 0
-	callstack 29
+	callstack 25
 	bsf int$flags,1,c ;set compiler interrupt flag (level 2)
 	global	int_func
 	call	int_func,f	;refresh shadow registers
@@ -1650,34 +2864,46 @@ __pintcode_body:
 int_func:
 
 	pop	; remove dummy address from shadow register refresh
-	line	7
-	
-i2l909:
-	btfss	((c:4082))^0f00h,c,2	;volatile
-	goto	i2u1_41
-	goto	i2u1_40
-i2u1_41:
-	goto	i2l14
-i2u1_40:
+	movff	fsr1l+0,??_isr+0
+	movff	fsr1h+0,??_isr+1
+	movff	fsr2l+0,??_isr+2
+	movff	fsr2h+0,??_isr+3
+	movff	prodl+0,??_isr+4
+	movff	prodh+0,??_isr+5
 	line	9
 	
-i2l911:
-	bcf	((c:4082))^0f00h,c,2	;volatile
-	line	12
+i2l1044:
+	btfss	((c:4082))^0f00h,c,2	;volatile
+	goto	i2u13_41
+	goto	i2u13_40
+i2u13_41:
+	goto	i2l36
+i2u13_40:
+	line	11
 	
-i2l913:
+i2l1046:
+	bcf	((c:4082))^0f00h,c,2	;volatile
+	line	14
+	
+i2l1048:
 	movlw	low(0F6h)
 	movwf	((c:4055))^0f00h,c	;volatile
-	line	13
+	line	15
 	movlw	low(03Ch)
 	movwf	((c:4054))^0f00h,c	;volatile
-	line	15
-	
-i2l915:
-	call	_scheduler_tick	;wreg free
 	line	17
 	
-i2l14:
+i2l1050:
+	call	_scheduler_tick	;wreg free
+	line	19
+	
+i2l36:
+	movff	??_isr+5,prodh+0
+	movff	??_isr+4,prodl+0
+	movff	??_isr+3,fsr2h+0
+	movff	??_isr+2,fsr2l+0
+	movff	??_isr+1,fsr1h+0
+	movff	??_isr+0,fsr1l+0
 	bcf int$flags,1,c ;clear compiler interrupt flag (level 2)
 	retfie f
 	callstack 0
@@ -1688,25 +2914,25 @@ GLOBAL	__end_of_isr
 
 ;; *************** function _scheduler_tick *****************
 ;; Defined at:
-;;		line 13 in file "src/scheduler.c"
+;;		line 31 in file "src/scheduler.c"
 ;; Parameters:    Size  Location     Type
 ;;		None
 ;; Auto vars:     Size  Location     Type
-;;		None
+;;  i               1    4[COMRAM] unsigned char 
 ;; Return value:  Size  Location     Type
 ;;                  1    wreg      void 
 ;; Registers used:
-;;		None
+;;		wreg, fsr1l, fsr1h, fsr2l, fsr2h, status,2, status,0, prodl, prodh
 ;; Tracked objects:
 ;;		On entry : 0/0
 ;;		On exit  : 0/0
 ;;		Unchanged: 0/0
 ;; Data sizes:     COMRAM   BANK0   BANK1   BANK2   BANK3   BANK4   BANK5   BANK6   BANK7
 ;;      Params:         0       0       0       0       0       0       0       0       0
-;;      Locals:         0       0       0       0       0       0       0       0       0
-;;      Temps:          0       0       0       0       0       0       0       0       0
-;;      Totals:         0       0       0       0       0       0       0       0       0
-;;Total ram usage:        0 bytes
+;;      Locals:         1       0       0       0       0       0       0       0       0
+;;      Temps:          4       0       0       0       0       0       0       0       0
+;;      Totals:         5       0       0       0       0       0       0       0       0
+;;Total ram usage:        5 bytes
 ;; Hardware stack levels used: 1
 ;; This function calls:
 ;;		Nothing
@@ -1714,21 +2940,99 @@ GLOBAL	__end_of_isr
 ;;		_isr
 ;; This function uses a non-reentrant model
 ;;
-psect	text2,class=CODE,space=0,reloc=2,group=0
+psect	text12,class=CODE,space=0,reloc=2,group=0
 	file	"src/scheduler.c"
-	line	13
-global __ptext2
-__ptext2:
-psect	text2
+	line	31
+global __ptext12
+__ptext12:
+psect	text12
 	file	"src/scheduler.c"
-	line	13
+	line	31
 	
 _scheduler_tick:
 ;incstack = 0
-	callstack 29
-	line	16
+	callstack 25
+	line	33
 	
-i2l110:
+i2l982:
+	clrf	((c:scheduler_tick@i))^00h,c
+	goto	i2l992
+	line	35
+	
+i2l984:
+	movf	((c:scheduler_tick@i))^00h,c,w
+	mullw	07h
+	movf	(prodl)^0f00h,c,w
+	addlw	low(_task_list+04h)
+	movwf	fsr2l
+	clrf	fsr2h
+	incf	postinc2
+	movlw	0
+	addwfc	postdec2
+	line	37
+	
+i2l986:
+	movf	((c:scheduler_tick@i))^00h,c,w
+	mullw	07h
+	movf	(prodl)^0f00h,c,w
+	addlw	low(_task_list+02h)
+	movwf	fsr2l
+	clrf	fsr2h
+	movf	((c:scheduler_tick@i))^00h,c,w
+	mullw	07h
+	movf	(prodl)^0f00h,c,w
+	addlw	low(_task_list+04h)
+	movwf	fsr1l
+	clrf	fsr1h
+		movf	postinc2,w
+	subwf	postinc1,w
+	movf	postinc2,w
+	subwfb	postinc1,w
+	btfss	status,0
+	goto	i2u6_41
+	goto	i2u6_40
+
+i2u6_41:
+	goto	i2l990
+i2u6_40:
+	line	39
+	
+i2l988:
+	movf	((c:scheduler_tick@i))^00h,c,w
+	mullw	07h
+	movf	(prodl)^0f00h,c,w
+	addlw	low(_task_list+04h)
+	movwf	fsr2l
+	clrf	fsr2h
+	clrf	postinc2
+	clrf	postdec2
+	line	40
+	movf	((c:scheduler_tick@i))^00h,c,w
+	mullw	07h
+	movf	(prodl)^0f00h,c,w
+	addlw	low(_task_list+06h)
+	movwf	fsr2l
+	clrf	fsr2h
+	movlw	low(01h)
+	movwf	indf2
+	line	42
+	
+i2l990:
+	incf	((c:scheduler_tick@i))^00h,c
+	
+i2l992:
+		movf	((c:_task_count))^00h,c,w
+	subwf	((c:scheduler_tick@i))^00h,c,w
+	btfss	status,0
+	goto	i2u7_41
+	goto	i2u7_40
+
+i2u7_41:
+	goto	i2l984
+i2u7_40:
+	line	43
+	
+i2l149:
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_scheduler_tick

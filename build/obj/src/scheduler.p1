@@ -1,28 +1,157 @@
 Version 4.0 HI-TECH Software Intermediate Code
+[v F40 `(v ~T0 @X0 0 tf ]
+"11 inc/scheduler.h
+[s S1 `*F40 1 `us 1 `us 1 `uc 1 ]
+[n S1 . task period_ms counter_ms ready ]
+[v F58 `(v ~T0 @X0 0 tf ]
+[v F66 `(v ~T0 @X0 0 tf ]
+[v F68 `(v ~T0 @X0 0 tf ]
 "3 src/scheduler.c
-[v _scheduler_int `(v ~T0 @X0 1 ef ]
+[v _task_list `S1 ~T0 @X0 -> 5 `i s ]
 "4
-{
-[e :U _scheduler_int ]
-[f ]
+[v _task_count `uc ~T0 @X0 1 s ]
+[i _task_count
+-> -> 0 `i `uc
+]
 "6
+[v _scheduler_init `(v ~T0 @X0 1 ef ]
+"7
+{
+[e :U _scheduler_init ]
+[f ]
+"8
+{
+[v _i `uc ~T0 @X0 1 a ]
+[e = _i -> -> 0 `i `uc ]
+[e $ < -> _i `i -> 5 `i 3  ]
+[e $U 4  ]
+[e :U 3 ]
+"9
+{
+"10
+[e = . *U + &U _task_list * -> _i `ux -> -> # *U &U _task_list `ui `ux 0 -> -> 0 `i `*F58 ]
+"11
+[e = . *U + &U _task_list * -> _i `ux -> -> # *U &U _task_list `ui `ux 1 -> -> 0 `i `us ]
+"12
+[e = . *U + &U _task_list * -> _i `ux -> -> # *U &U _task_list `ui `ux 2 -> -> 0 `i `us ]
+"13
+[e = . *U + &U _task_list * -> _i `ux -> -> # *U &U _task_list `ui `ux 3 -> -> 0 `i `uc ]
+"14
+}
+[e ++ _i -> -> 1 `i `uc ]
+[e $ < -> _i `i -> 5 `i 3  ]
+[e :U 4 ]
+}
+"16
+[e = _task_count -> -> 0 `i `uc ]
+"17
 [e :UE 2 ]
 }
-"8
+"19
 [v _scheduler_run `(v ~T0 @X0 1 ef ]
-"9
+"20
 {
 [e :U _scheduler_run ]
 [f ]
-"11
-[e :UE 3 ]
+"21
+{
+[v _i `uc ~T0 @X0 1 a ]
+[e = _i -> -> 0 `i `uc ]
+[e $U 10  ]
+[e :U 7 ]
+"22
+{
+"23
+[e $ ! != -> . *U + &U _task_list * -> _i `ux -> -> # *U &U _task_list `ui `ux 3 `i -> 0 `i 11  ]
+"24
+{
+"25
+[e = . *U + &U _task_list * -> _i `ux -> -> # *U &U _task_list `ui `ux 3 -> -> 0 `i `uc ]
+"26
+[e ( *U . *U + &U _task_list * -> _i `ux -> -> # *U &U _task_list `ui `ux 0 ..  ]
+"27
 }
-"13
+[e :U 11 ]
+"28
+}
+[e ++ _i -> -> 1 `i `uc ]
+[e :U 10 ]
+[e $ < -> _i `i -> _task_count `i 7  ]
+[e :U 8 ]
+}
+"29
+[e :UE 6 ]
+}
+"31
 [v _scheduler_tick `(v ~T0 @X0 1 ef ]
-"14
+"32
 {
 [e :U _scheduler_tick ]
 [f ]
-"16
-[e :UE 4 ]
+"33
+{
+[v _i `uc ~T0 @X0 1 a ]
+[e = _i -> -> 0 `i `uc ]
+[e $U 16  ]
+[e :U 13 ]
+"34
+{
+"35
+[e ++ . *U + &U _task_list * -> _i `ux -> -> # *U &U _task_list `ui `ux 2 -> -> 1 `i `us ]
+"37
+[e $ ! >= -> . *U + &U _task_list * -> _i `ux -> -> # *U &U _task_list `ui `ux 2 `ui -> . *U + &U _task_list * -> _i `ux -> -> # *U &U _task_list `ui `ux 1 `ui 17  ]
+"38
+{
+"39
+[e = . *U + &U _task_list * -> _i `ux -> -> # *U &U _task_list `ui `ux 2 -> -> 0 `i `us ]
+"40
+[e = . *U + &U _task_list * -> _i `ux -> -> # *U &U _task_list `ui `ux 3 -> -> 1 `i `uc ]
+"41
+}
+[e :U 17 ]
+"42
+}
+[e ++ _i -> -> 1 `i `uc ]
+[e :U 16 ]
+[e $ < -> _i `i -> _task_count `i 13  ]
+[e :U 14 ]
+}
+"43
+[e :UE 12 ]
+}
+"45
+[v _scheduler_add_task `(uc ~T0 @X0 1 ef2`*F66`us ]
+"46
+{
+[e :U _scheduler_add_task ]
+"45
+[v _task `*F68 ~T0 @X0 1 r1 ]
+[v _period_ms `us ~T0 @X0 1 r2 ]
+"46
+[f ]
+"47
+[e $ ! >= -> _task_count `i -> 5 `i 19  ]
+"48
+{
+"49
+[e ) -> -> 0 `i `uc ]
+[e $UE 18  ]
+"50
+}
+[e :U 19 ]
+"52
+[e = . *U + &U _task_list * -> _task_count `ux -> -> # *U &U _task_list `ui `ux 0 _task ]
+"53
+[e = . *U + &U _task_list * -> _task_count `ux -> -> # *U &U _task_list `ui `ux 1 _period_ms ]
+"54
+[e = . *U + &U _task_list * -> _task_count `ux -> -> # *U &U _task_list `ui `ux 2 -> -> 0 `i `us ]
+"55
+[e = . *U + &U _task_list * -> _task_count `ux -> -> # *U &U _task_list `ui `ux 3 -> -> 0 `i `uc ]
+"57
+[e ++ _task_count -> -> 1 `i `uc ]
+"58
+[e ) -> -> 1 `i `uc ]
+[e $UE 18  ]
+"59
+[e :UE 18 ]
 }
