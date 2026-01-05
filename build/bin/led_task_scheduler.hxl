@@ -1,7 +1,7 @@
 ### HEXMate logfile and output summary ###
 
 ### Command-line arguments ###
- /tmp/xcXnnOeIn/driver_tmp_3.o
+ /tmp/xcXlneibc/driver_tmp_3.o
  -Obuild/bin/led_task_scheduler.hex
  -logfile=build/bin/led_task_scheduler.hxl
  -addressing=1
@@ -9,17 +9,19 @@
 
 ### Memory Usage ###
  Input file ranges:
-  0h - 3h		(/tmp/xcXnnOeIn/driver_tmp_3.o)
-  8h - 11h		(/tmp/xcXnnOeIn/driver_tmp_3.o)
-  800h - C99h		(/tmp/xcXnnOeIn/driver_tmp_3.o)
+  0h - 3h		(/tmp/xcXlneibc/driver_tmp_3.o)
+  8h - 11h		(/tmp/xcXlneibc/driver_tmp_3.o)
+  800h - C57h		(/tmp/xcXlneibc/driver_tmp_3.o)
+  300000h - 300007h		(/tmp/xcXlneibc/driver_tmp_3.o)
  Unused ranges:
   4h - 7h
   12h - 7FFh
+  C58h - 2FFFFFh
 
 ### Hex Memory Map ###
  Legend:
   -- = Unused memory
-  H1 = Input file             (/tmp/xcXnnOeIn/driver_tmp_3.o)
+  H1 = Input file             (/tmp/xcXlneibc/driver_tmp_3.o)
 ----------------------------------------------------------
          | 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F
 ----------------------------------------------------------
@@ -95,9 +97,7 @@
 00000C20 | H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1
 00000C30 | H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1
 00000C40 | H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1
-00000C50 | H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1
-00000C60 | H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1
-00000C70 | H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1
-00000C80 | H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 H1
-00000C90 | H1 H1 H1 H1 H1 H1 H1 H1 H1 H1 -- -- -- -- -- --
-00000CA0 | --
+00000C50 | H1 H1 H1 H1 H1 H1 H1 H1 -- -- -- -- -- -- -- --
+----------------------------------------------------------
+00300000 | H1 H1 H1 H1 H1 H1 H1 H1 -- -- -- -- -- -- -- --
+00300010 | --

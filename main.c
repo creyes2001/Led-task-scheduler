@@ -1,8 +1,9 @@
 #include "scheduler.h"
-#include "gpio.h"
 #include "timer.h"
 #include "led.h"
+#include "config.h"
 #include <xc.h>
+
 
 void __interrupt() isr(void)
 {
@@ -29,11 +30,12 @@ int main(void)
 	scheduler_init();
 	timer0_init();
 
-	scheduler_add_task(led_task, 500);
+	scheduler_add_task(led_task, 200);
 
 	while(1)
 	{
 		scheduler_run();
+
 	}
 return 0;
 }

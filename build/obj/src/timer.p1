@@ -395,7 +395,9 @@ Version 4.0 HI-TECH Software Intermediate Code
 "22
 [e = . . _INTCONbits 0 5 -> -> 1 `i `uc ]
 "24
-[e = . . _T0CONbits 0 5 -> -> 1 `i `uc ]
+[e = . . _INTCONbits 1 7 -> -> 1 `i `uc ]
 "26
+[e = . . _T0CONbits 0 5 -> -> 1 `i `uc ]
+"28
 [e :UE 391 ]
 }

@@ -21,6 +21,8 @@ void timer0_init(void)
 	INTCONbits.TMR0IF = 0; //eneable TMR0 interrupt
 	INTCONbits.TMR0IE = 1; //eneable TMR0 interrupt
 
+	INTCONbits.GIE = 1; //enable global interrupts
+
 	T0CONbits.TMR0ON = 1; //start timer
 
 }

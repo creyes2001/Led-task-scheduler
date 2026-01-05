@@ -2,19 +2,19 @@ Version 4.0 HI-TECH Software Intermediate Code
 [t ~ __interrupt . k ]
 [t T36 __interrupt ]
 "8586 /opt/microchip/mplabx/v6.25/packs/Microchip/PIC18Fxxxx_DFP/1.7.171/xc8/pic/include/proc/pic18f4550.h
-[s S362 :1 `uc 1 :1 `uc 1 :1 `uc 1 :1 `uc 1 :1 `uc 1 :1 `uc 1 :1 `uc 1 :1 `uc 1 ]
-[n S362 . RBIF INT0IF TMR0IF RBIE INT0IE TMR0IE PEIE_GIEL GIE_GIEH ]
+[s S361 :1 `uc 1 :1 `uc 1 :1 `uc 1 :1 `uc 1 :1 `uc 1 :1 `uc 1 :1 `uc 1 :1 `uc 1 ]
+[n S361 . RBIF INT0IF TMR0IF RBIE INT0IE TMR0IE PEIE_GIEL GIE_GIEH ]
 "8596
-[s S363 :1 `uc 1 :1 `uc 1 :1 `uc 1 :1 `uc 1 :1 `uc 1 :1 `uc 1 :1 `uc 1 :1 `uc 1 ]
-[n S363 . . INT0F T0IF . INT0E T0IE PEIE GIE ]
+[s S362 :1 `uc 1 :1 `uc 1 :1 `uc 1 :1 `uc 1 :1 `uc 1 :1 `uc 1 :1 `uc 1 :1 `uc 1 ]
+[n S362 . . INT0F T0IF . INT0E T0IE PEIE GIE ]
 "8606
-[s S364 :6 `uc 1 :1 `uc 1 :1 `uc 1 ]
-[n S364 . . GIEL GIEH ]
+[s S363 :6 `uc 1 :1 `uc 1 :1 `uc 1 ]
+[n S363 . . GIEL GIEH ]
 "8585
-[u S361 `S362 1 `S363 1 `S364 1 ]
-[n S361 . . . . ]
+[u S360 `S361 1 `S362 1 `S363 1 ]
+[n S360 . . . . ]
 "8612
-[v _INTCONbits `VS361 ~T0 @X0 0 e@4082 ]
+[v _INTCONbits `VS360 ~T0 @X0 0 e@4082 ]
 "8151
 [v _TMR0H `Vuc ~T0 @X0 0 e@4055 ]
 "8144
@@ -35,16 +35,38 @@ Version 4.0 HI-TECH Software Intermediate Code
 [v _scheduler_add_task `(uc ~T0 @X0 0 ef2`*F49`us ]
 "19
 [v _scheduler_run `(v ~T0 @X0 0 ef ]
-"7 inc/gpio.h
-[v _latA_shadow `uc ~T0 @X0 1 s ]
+"3 inc/config.h
+[p x PLLDIV  =  1        ]
+"4
+[p x CPUDIV  =  OSC1_PLL2  ]
+"5
+[p x USBDIV  =  1        ]
 "8
-[v _latB_shadow `uc ~T0 @X0 1 s ]
+[p x FOSC  =  HS         ]
 "9
-[v _latC_shadow `uc ~T0 @X0 1 s ]
+[p x FCMEN  =  OFF       ]
 "10
-[v _latD_shadow `uc ~T0 @X0 1 s ]
-"11
-[v _latE_shadow `uc ~T0 @X0 1 s ]
+[p x IESO  =  OFF        ]
+"13
+[p x PWRT  =  ON         ]
+"14
+[p x BOR  =  ON          ]
+"15
+[p x BORV  =  3          ]
+"18
+[p x WDT  =  OFF         ]
+"21
+[p x PBADEN  =  OFF      ]
+"22
+[p x LPT1OSC  =  OFF     ]
+"23
+[p x MCLRE  =  ON        ]
+"26
+[p x STVREN  =  ON       ]
+"27
+[p x LVP  =  OFF         ]
+"28
+[p x XINST  =  OFF       ]
 "52 /opt/microchip/mplabx/v6.25/packs/Microchip/PIC18Fxxxx_DFP/1.7.171/xc8/pic/include/proc/pic18f4550.h
 [; <" SPPDATA equ 0F62h ;# ">
 "72
@@ -386,70 +408,70 @@ Version 4.0 HI-TECH Software Intermediate Code
 "8891
 [; <" TOSU equ 0FFFh ;# ">
 [v $root$_isr `(v ~T0 @X0 0 e ]
-"7 main.c
+"8 main.c
 [v _isr `(v ~T36 @X0 1 ef ]
-"8
+"9
 {
 [e :U _isr ]
 [f ]
-"9
-[e $ ! != -> . . _INTCONbits 0 2 `i -> 0 `i 394  ]
 "10
-{
+[e $ ! != -> . . _INTCONbits 0 2 `i -> 0 `i 393  ]
 "11
+{
+"12
 [e = . . _INTCONbits 0 2 -> -> 0 `i `uc ]
-"14
-[e = _TMR0H -> -> 246 `i `uc ]
 "15
+[e = _TMR0H -> -> 246 `i `uc ]
+"16
 [e = _TMR0L -> -> 60 `i `uc ]
-"17
-[e ( _scheduler_tick ..  ]
 "18
-}
-[e :U 394 ]
+[e ( _scheduler_tick ..  ]
 "19
-[e :UE 393 ]
 }
-"21
-[v _led_task `(v ~T0 @X0 1 ef ]
+[e :U 393 ]
+"20
+[e :UE 392 ]
+}
 "22
+[v _led_task `(v ~T0 @X0 1 ef ]
+"23
 {
 [e :U _led_task ]
 [f ]
-"23
-[e ( _led_toggle (1 -> -> 0 `i `uc ]
 "24
-[e :UE 395 ]
+[e ( _led_toggle (1 -> -> 0 `i `uc ]
+"25
+[e :UE 394 ]
 }
 [v $root$_main `(v ~T0 @X0 0 e ]
-"26
-[v _main `(i ~T0 @X0 1 ef ]
 "27
+[v _main `(i ~T0 @X0 1 ef ]
+"28
 {
 [e :U _main ]
 [f ]
-"28
-[e ( _led_init ..  ]
 "29
-[e ( _scheduler_init ..  ]
+[e ( _led_init ..  ]
 "30
+[e ( _scheduler_init ..  ]
+"31
 [e ( _timer0_init ..  ]
-"32
-[e ( _scheduler_add_task (2 , &U _led_task -> -> 500 `i `us ]
-"34
-[e :U 398 ]
+"33
+[e ( _scheduler_add_task (2 , &U _led_task -> -> 200 `i `us ]
 "35
-{
-"36
-[e ( _scheduler_run ..  ]
-"37
-}
 [e :U 397 ]
-[e $U 398  ]
-[e :U 399 ]
-"38
-[e ) -> 0 `i ]
-[e $UE 396  ]
+"36
+{
+"37
+[e ( _scheduler_run ..  ]
 "39
-[e :UE 396 ]
+}
+[e :U 396 ]
+[e $U 397  ]
+[e :U 398 ]
+"40
+[e ) -> 0 `i ]
+[e $UE 395  ]
+"41
+[e :UE 395 ]
 }

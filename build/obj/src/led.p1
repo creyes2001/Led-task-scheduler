@@ -8,12 +8,12 @@ Version 4.0 HI-TECH Software Intermediate Code
 [v _LATD `Vuc ~T0 @X0 0 e@3980 ]
 "2703
 [v _PORTD `Vuc ~T0 @X0 0 e@3971 ]
-"21 src/led.c
+"23 src/led.c
 [c E52 1 0 .. ]
 [n E52 . GPIO_INPUT GPIO_OUTPUT  ]
 "35 inc/gpio.h
 [v _gpio_init `(v ~T0 @X0 0 ef2`*S1`E52 ]
-"22 src/led.c
+"24 src/led.c
 [c E56 0 1 .. ]
 [n E56 . GPIO_LOW GPIO_HIGH  ]
 "36 inc/gpio.h
@@ -378,12 +378,12 @@ Version 4.0 HI-TECH Software Intermediate Code
 &U _TRISD
 &U _LATD
 &U _PORTD
--> -> 0 `i `*uc
+&U _latD_shadow
 -> -> 0 `i `uc
 ..
 ..
 ]
-"12
+"13
 [v _led2 `S1 ~T0 @X0 1 e ]
 [i _led2
 :U ..
@@ -391,54 +391,54 @@ Version 4.0 HI-TECH Software Intermediate Code
 &U _TRISD
 &U _LATD
 &U _PORTD
--> -> 0 `i `*uc
+&U _latD_shadow
 -> -> 1 `i `uc
 ..
 ..
 ]
-"19
+"21
 [v _led_init `(v ~T0 @X0 1 ef ]
 {
 [e :U _led_init ]
 [f ]
-"21
-[e ( _gpio_init (2 , &U _led1 . `E52 1 ]
-"22
-[e ( _gpio_write (2 , &U _led1 . `E56 0 ]
 "23
-[e ( _gpio_init (2 , &U _led2 . `E52 1 ]
+[e ( _gpio_init (2 , &U _led1 . `E52 1 ]
 "24
-[e ( _gpio_write (2 , &U _led2 . `E56 0 ]
+[e ( _gpio_write (2 , &U _led1 . `E56 0 ]
 "25
+[e ( _gpio_init (2 , &U _led2 . `E52 1 ]
+"26
+[e ( _gpio_write (2 , &U _led2 . `E56 0 ]
+"27
 [e :UE 392 ]
 }
-"27
+"29
 [v _led_on `(v ~T0 @X0 1 ef1`uc ]
 {
 [e :U _led_on ]
 [v _led_id `uc ~T0 @X0 1 r1 ]
 [f ]
-"28
-[e $U 395  ]
-"29
-{
 "30
-[e :U 396 ]
+[e $U 395  ]
 "31
-[e ( _gpio_write (2 , &U _led1 . `E56 1 ]
+{
 "32
-[e $U 394  ]
+[e :U 396 ]
 "33
-[e :U 397 ]
+[e ( _gpio_write (2 , &U _led1 . `E56 1 ]
 "34
-[e ( _gpio_write (2 , &U _led2 . `E56 1 ]
-"35
 [e $U 394  ]
+"35
+[e :U 397 ]
 "36
-[e :U 398 ]
+[e ( _gpio_write (2 , &U _led2 . `E56 1 ]
 "37
 [e $U 394  ]
 "38
+[e :U 398 ]
+"39
+[e $U 394  ]
+"40
 }
 [e $U 394  ]
 [e :U 395 ]
@@ -446,36 +446,36 @@ Version 4.0 HI-TECH Software Intermediate Code
  , $ -> 1 `i 397
  398 ]
 [e :U 394 ]
-"39
+"41
 [e :UE 393 ]
 }
-"41
+"43
 [v _led_off `(v ~T0 @X0 1 ef1`uc ]
 {
 [e :U _led_off ]
 [v _led_id `uc ~T0 @X0 1 r1 ]
 [f ]
-"42
-[e $U 401  ]
-"43
-{
 "44
-[e :U 402 ]
+[e $U 401  ]
 "45
-[e ( _gpio_write (2 , &U _led1 . `E56 0 ]
+{
 "46
-[e $U 400  ]
+[e :U 402 ]
 "47
-[e :U 403 ]
+[e ( _gpio_write (2 , &U _led1 . `E56 0 ]
 "48
-[e ( _gpio_write (2 , &U _led2 . `E56 0 ]
-"49
 [e $U 400  ]
+"49
+[e :U 403 ]
 "50
-[e :U 404 ]
+[e ( _gpio_write (2 , &U _led2 . `E56 0 ]
 "51
 [e $U 400  ]
 "52
+[e :U 404 ]
+"53
+[e $U 400  ]
+"54
 }
 [e $U 400  ]
 [e :U 401 ]
@@ -483,36 +483,36 @@ Version 4.0 HI-TECH Software Intermediate Code
  , $ -> 1 `i 403
  404 ]
 [e :U 400 ]
-"53
+"55
 [e :UE 399 ]
 }
-"55
+"57
 [v _led_toggle `(v ~T0 @X0 1 ef1`uc ]
 {
 [e :U _led_toggle ]
 [v _led_id `uc ~T0 @X0 1 r1 ]
 [f ]
-"56
-[e $U 407  ]
-"57
-{
 "58
-[e :U 408 ]
+[e $U 407  ]
 "59
-[e ( _gpio_toggle (1 &U _led1 ]
+{
 "60
-[e $U 406  ]
+[e :U 408 ]
 "61
-[e :U 409 ]
+[e ( _gpio_toggle (1 &U _led1 ]
 "62
-[e ( _gpio_toggle (1 &U _led2 ]
-"63
 [e $U 406  ]
+"63
+[e :U 409 ]
 "64
-[e :U 410 ]
+[e ( _gpio_toggle (1 &U _led2 ]
 "65
 [e $U 406  ]
 "66
+[e :U 410 ]
+"67
+[e $U 406  ]
+"68
 }
 [e $U 406  ]
 [e :U 407 ]
@@ -520,6 +520,6 @@ Version 4.0 HI-TECH Software Intermediate Code
  , $ -> 1 `i 409
  410 ]
 [e :U 406 ]
-"67
+"69
 [e :UE 405 ]
 }

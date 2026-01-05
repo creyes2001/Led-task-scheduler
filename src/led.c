@@ -6,6 +6,7 @@ gpio_t led1 = {
 	.port = &PORTD,
 	.tris = &TRISD,
 	.lat = &LATD,
+	.shadow = &latD_shadow,
 	.pin = 0
 };
 
@@ -13,6 +14,7 @@ gpio_t led2 = {
 	.port = &PORTD,
 	.tris = &TRISD,
 	.lat = &LATD,
+	.shadow = &latD_shadow,
 	.pin = 1
 };
 

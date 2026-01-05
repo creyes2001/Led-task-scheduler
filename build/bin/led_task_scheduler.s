@@ -1158,7 +1158,7 @@ psect	idataCOMRAM,class=CODE,space=0,delta=1,noexec
 global __pidataCOMRAM
 __pidataCOMRAM:
 	file	"src/led.c"
-	line	12
+	line	13
 
 ;initializer for _led2
 		db	low(3989)
@@ -1170,8 +1170,7 @@ __pidataCOMRAM:
 		db	low(3971)
 	db	high(3971)
 
-		db	low(0)
-	db	high(0)
+		db	low(_latD_shadow)
 
 	db	low(01h)
 	line	5
@@ -1186,12 +1185,12 @@ __pidataCOMRAM:
 		db	low(3971)
 	db	high(3971)
 
-		db	low(0)
-	db	high(0)
+		db	low(_latD_shadow)
 
 	db	low(0)
 	global	_task_list
 	global	_task_count
+	global	_latD_shadow
 	global	_T0CONbits
 _T0CONbits	set	0xFD5
 	global	_T0CON
@@ -1212,6 +1211,22 @@ _TRISD	set	0xF95
 	config ignore_cmsgs    = off
 	config default_configs = off
 	config default_idlocs  = off
+	config PLLDIV = "1"
+	config CPUDIV = "OSC1_PLL2"
+	config USBDIV = "1"
+	config FOSC = "HS"
+	config FCMEN = "OFF"
+	config IESO = "OFF"
+	config PWRT = "ON"
+	config BOR = "ON"
+	config BORV = "3"
+	config WDT = "OFF"
+	config PBADEN = "OFF"
+	config LPT1OSC = "OFF"
+	config MCLRE = "ON"
+	config STVREN = "ON"
+	config LVP = "OFF"
+	config XINST = "OFF"
 	file	"build/bin/led_task_scheduler.s"
 	line	#
 psect	cinit,class=CODE,delta=1,reloc=2
@@ -1229,29 +1244,17 @@ _task_list:
        ds      35
 _task_count:
        ds      1
-_latE_shadow@gpio$F204:
+_latE_shadow@gpio$F198:
        ds      1
-_latD_shadow@gpio$F203:
+_latD_shadow@gpio$F197:
        ds      1
-_latC_shadow@gpio$F202:
+_latC_shadow@gpio$F196:
        ds      1
-_latB_shadow@gpio$F201:
+_latB_shadow@gpio$F195:
        ds      1
-_latA_shadow@gpio$F200:
-       ds      1
-_latE_shadow@gpio$F167:
-       ds      1
-_latD_shadow@gpio$F166:
-       ds      1
-_latC_shadow@gpio$F165:
-       ds      1
-_latB_shadow@gpio$F164:
-       ds      1
-_latA_shadow@gpio$F163:
+_latA_shadow@gpio$F194:
        ds      1
 _latE_shadow:
-       ds      1
-_latD_shadow:
        ds      1
 _latC_shadow:
        ds      1
@@ -1259,24 +1262,26 @@ _latB_shadow:
        ds      1
 _latA_shadow:
        ds      1
+_latD_shadow:
+       ds      1
 psect	dataCOMRAM,class=COMRAM,space=1,noexec,lowdata
 global __pdataCOMRAM
 __pdataCOMRAM:
 	file	"src/led.c"
-	line	12
+	line	13
 	global	_led2
 _led2:
-       ds      9
+       ds      8
 psect	dataCOMRAM
 	file	"src/led.c"
 	line	5
 	global	_led1
 _led1:
-       ds      9
+       ds      8
 	file	"build/bin/led_task_scheduler.s"
 	line	#
 psect	cinit
-; Initialize objects allocated to COMRAM (18 bytes)
+; Initialize objects allocated to COMRAM (16 bytes)
 	global __pidataCOMRAM
 	; load TBLPTR registers with __pidataCOMRAM
 	movlw	low (__pidataCOMRAM)
@@ -1286,7 +1291,7 @@ psect	cinit
 	movlw	low highword(__pidataCOMRAM)
 	movwf	tblptru
 	lfsr	0,__pdataCOMRAM
-	lfsr	1,18
+	lfsr	1,16
 	copy_data0:
 	tblrd	*+
 	movff	tablat, postinc0
@@ -1294,10 +1299,10 @@ psect	cinit
 	movf	fsr1l,w
 	bnz	copy_data0
 	line	#
-; Clear objects allocated to COMRAM (51 bytes)
+; Clear objects allocated to COMRAM (46 bytes)
 	global __pbssCOMRAM
 lfsr	0,__pbssCOMRAM
-movlw	51
+movlw	46
 clear_0:
 clrf	postinc0,c
 decf	wreg
@@ -1316,19 +1321,6 @@ __end_of__initialization:
 	movwf	tblptru
 movlb 0
 goto _main	;jump to C main() function
-psect	cstackBANK0,class=BANK0,space=1,noexec,lowdata
-global __pcstackBANK0
-__pcstackBANK0:
-?_scheduler_add_task:	; 1 bytes @ 0x0
-	global	scheduler_add_task@task
-scheduler_add_task@task:	; 2 bytes @ 0x0
-??_gpio_init:	; 1 bytes @ 0x0
-??_gpio_write:	; 1 bytes @ 0x0
-??_gpio_toggle:	; 1 bytes @ 0x0
-	ds   2
-	global	scheduler_add_task@period_ms
-scheduler_add_task@period_ms:	; 2 bytes @ 0x2
-	ds   3
 psect	cstackCOMRAM,class=COMRAM,space=1,noexec,lowdata
 global __pcstackCOMRAM
 __pcstackCOMRAM:
@@ -1348,6 +1340,7 @@ scheduler_tick@i:	; 1 bytes @ 0x4
 	ds   1
 ??_isr:	; 1 bytes @ 0x5
 	ds   6
+?_scheduler_add_task:	; 1 bytes @ 0xB
 ?_gpio_init:	; 1 bytes @ 0xB
 ?_gpio_write:	; 1 bytes @ 0xB
 ?_gpio_toggle:	; 1 bytes @ 0xB
@@ -1359,38 +1352,47 @@ gpio_write@p:	; 1 bytes @ 0xB
 gpio_toggle@p:	; 1 bytes @ 0xB
 	global	scheduler_init@i
 scheduler_init@i:	; 1 bytes @ 0xB
+	global	scheduler_add_task@task
+scheduler_add_task@task:	; 2 bytes @ 0xB
 ??_scheduler_init:	; 1 bytes @ 0xB
 ??_timer0_init:	; 1 bytes @ 0xB
-??_scheduler_add_task:	; 1 bytes @ 0xB
 	ds   1
-	global	led_toggle@led_id
-led_toggle@led_id:	; 1 bytes @ 0xC
 	global	gpio_init@dir
 gpio_init@dir:	; 1 bytes @ 0xC
 	global	gpio_write@level
 gpio_write@level:	; 1 bytes @ 0xC
-??_led_toggle:	; 1 bytes @ 0xC
+??_gpio_toggle:	; 1 bytes @ 0xC
+	ds   1
+	global	scheduler_add_task@period_ms
+scheduler_add_task@period_ms:	; 2 bytes @ 0xD
+??_gpio_init:	; 1 bytes @ 0xD
+??_gpio_write:	; 1 bytes @ 0xD
+	ds   1
+	global	led_toggle@led_id
+led_toggle@led_id:	; 1 bytes @ 0xE
+??_led_toggle:	; 1 bytes @ 0xE
 	ds   1
 	global	scheduler_run@i
-scheduler_run@i:	; 1 bytes @ 0xD
-??_led_init:	; 1 bytes @ 0xD
-??_scheduler_run:	; 1 bytes @ 0xD
-??_led_task:	; 1 bytes @ 0xD
+scheduler_run@i:	; 1 bytes @ 0xF
+??_scheduler_add_task:	; 1 bytes @ 0xF
+??_scheduler_run:	; 1 bytes @ 0xF
+??_led_task:	; 1 bytes @ 0xF
 	ds   1
-??_main:	; 1 bytes @ 0xE
+??_led_init:	; 1 bytes @ 0x10
+??_main:	; 1 bytes @ 0x10
 ;!
 ;!Data Sizes:
 ;!    Strings     0
 ;!    Constant    0
-;!    Data        18
-;!    BSS         51
+;!    Data        16
+;!    BSS         46
 ;!    Persistent  0
 ;!    Stack       0
 ;!
 ;!Auto Spaces:
 ;!    Space          Size  Autos    Used
-;!    COMRAM           94     14      83
-;!    BANK0           160      5       5
+;!    COMRAM           94     16      78
+;!    BANK0           160      0       0
 ;!    BANK1           256      0       0
 ;!    BANK2           256      0       0
 ;!    BANK3           256      0       0
@@ -1403,7 +1405,7 @@ scheduler_run@i:	; 1 bytes @ 0xD
 ;!Pointer List with Targets:
 ;!
 ;!    gpio_init@p	PTR struct . size(1) Largest target is 9
-;!		 -> led1(COMRAM[9]), led2(COMRAM[9]), 
+;!		 -> led1(COMRAM[8]), led2(COMRAM[8]), 
 ;!
 ;!    gpio_init@p$lat	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> LATD(BIGSFR[1]), 
@@ -1411,8 +1413,8 @@ scheduler_run@i:	; 1 bytes @ 0xD
 ;!    gpio_init@p$port	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> PORTD(BIGSFR[1]), 
 ;!
-;!    gpio_init@p$shadow	PTR unsigned char  size(2) Largest target is 0
-;!		 -> NULL(NULL[0]), 
+;!    gpio_init@p$shadow	PTR unsigned char  size(1) Largest target is 1
+;!		 -> latD_shadow(COMRAM[1]), 
 ;!
 ;!    gpio_init@p$tris	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> TRISD(BIGSFR[1]), 
@@ -1423,14 +1425,14 @@ scheduler_run@i:	; 1 bytes @ 0xD
 ;!    gpio_read@p$port	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> PORTD(BIGSFR[1]), 
 ;!
-;!    gpio_read@p$shadow	PTR unsigned char  size(2) Largest target is 0
-;!		 -> NULL(NULL[0]), 
+;!    gpio_read@p$shadow	PTR unsigned char  size(1) Largest target is 1
+;!		 -> latD_shadow(COMRAM[1]), 
 ;!
 ;!    gpio_read@p$tris	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> TRISD(BIGSFR[1]), 
 ;!
 ;!    gpio_toggle@p	PTR struct . size(1) Largest target is 9
-;!		 -> led1(COMRAM[9]), led2(COMRAM[9]), 
+;!		 -> led1(COMRAM[8]), led2(COMRAM[8]), 
 ;!
 ;!    gpio_toggle@p$lat	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> LATD(BIGSFR[1]), 
@@ -1438,14 +1440,14 @@ scheduler_run@i:	; 1 bytes @ 0xD
 ;!    gpio_toggle@p$port	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> PORTD(BIGSFR[1]), 
 ;!
-;!    gpio_toggle@p$shadow	PTR unsigned char  size(2) Largest target is 0
-;!		 -> NULL(NULL[0]), 
+;!    gpio_toggle@p$shadow	PTR unsigned char  size(1) Largest target is 1
+;!		 -> latD_shadow(COMRAM[1]), 
 ;!
 ;!    gpio_toggle@p$tris	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> TRISD(BIGSFR[1]), 
 ;!
 ;!    gpio_write@p	PTR struct . size(1) Largest target is 9
-;!		 -> led1(COMRAM[9]), led2(COMRAM[9]), 
+;!		 -> led1(COMRAM[8]), led2(COMRAM[8]), 
 ;!
 ;!    gpio_write@p$lat	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> LATD(BIGSFR[1]), 
@@ -1453,8 +1455,8 @@ scheduler_run@i:	; 1 bytes @ 0xD
 ;!    gpio_write@p$port	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> PORTD(BIGSFR[1]), 
 ;!
-;!    gpio_write@p$shadow	PTR unsigned char  size(2) Largest target is 0
-;!		 -> NULL(NULL[0]), 
+;!    gpio_write@p$shadow	PTR unsigned char  size(1) Largest target is 1
+;!		 -> latD_shadow(COMRAM[1]), 
 ;!
 ;!    gpio_write@p$tris	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> TRISD(BIGSFR[1]), 
@@ -1465,8 +1467,8 @@ scheduler_run@i:	; 1 bytes @ 0xD
 ;!    led1$port	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> PORTD(BIGSFR[1]), 
 ;!
-;!    led1$shadow	PTR unsigned char  size(2) Largest target is 0
-;!		 -> NULL(NULL[0]), 
+;!    led1$shadow	PTR unsigned char  size(1) Largest target is 1
+;!		 -> latD_shadow(COMRAM[1]), 
 ;!
 ;!    led1$tris	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> TRISD(BIGSFR[1]), 
@@ -1477,25 +1479,25 @@ scheduler_run@i:	; 1 bytes @ 0xD
 ;!    led2$port	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> PORTD(BIGSFR[1]), 
 ;!
-;!    led2$shadow	PTR unsigned char  size(2) Largest target is 0
-;!		 -> NULL(NULL[0]), 
+;!    led2$shadow	PTR unsigned char  size(1) Largest target is 1
+;!		 -> latD_shadow(COMRAM[1]), 
 ;!
 ;!    led2$tris	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> TRISD(BIGSFR[1]), 
 ;!
-;!    S131$lat	PTR volatile unsigned char  size(2) Largest target is 1
+;!    S126$lat	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> LATD(BIGSFR[1]), 
 ;!
-;!    S131$port	PTR volatile unsigned char  size(2) Largest target is 1
+;!    S126$port	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> PORTD(BIGSFR[1]), 
 ;!
-;!    S131$shadow	PTR unsigned char  size(2) Largest target is 0
-;!		 -> NULL(NULL[0]), 
+;!    S126$shadow	PTR unsigned char  size(1) Largest target is 1
+;!		 -> latD_shadow(COMRAM[1]), 
 ;!
-;!    S131$tris	PTR volatile unsigned char  size(2) Largest target is 1
+;!    S126$tris	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> TRISD(BIGSFR[1]), 
 ;!
-;!    S236$task	PTR FTN()void  size(2) Largest target is 1
+;!    S230$task	PTR FTN()void  size(2) Largest target is 1
 ;!		 -> led_task(), NULL(), 
 ;!
 ;!    scheduler_add_task@task	PTR FTN()void  size(2) Largest target is 1
@@ -1512,7 +1514,6 @@ scheduler_run@i:	; 1 bytes @ 0xD
 ;!    _main->_scheduler_run
 ;!    _led_task->_led_toggle
 ;!    _led_toggle->_gpio_toggle
-;!    _led_init->_gpio_init
 ;!    _led_init->_gpio_write
 ;!
 ;!Critical Paths under _isr in COMRAM
@@ -1521,8 +1522,7 @@ scheduler_run@i:	; 1 bytes @ 0xD
 ;!
 ;!Critical Paths under _main in BANK0
 ;!
-;!    _led_toggle->_gpio_toggle
-;!    _led_init->_gpio_write
+;!    None.
 ;!
 ;!Critical Paths under _isr in BANK0
 ;!
@@ -1594,7 +1594,7 @@ scheduler_run@i:	; 1 bytes @ 0xD
 ;! ---------------------------------------------------------------------------------
 ;! (Depth) Function   	        Calls       Base Space   Used Autos Params    Refs
 ;! ---------------------------------------------------------------------------------
-;! (0) _main                                                 0     0      0     823
+;! (0) _main                                                 0     0      0     581
 ;!                           _led_init
 ;!                 _scheduler_add_task
 ;!                     _scheduler_init
@@ -1603,41 +1603,38 @@ scheduler_run@i:	; 1 bytes @ 0xD
 ;! ---------------------------------------------------------------------------------
 ;! (1) _timer0_init                                          0     0      0       0
 ;! ---------------------------------------------------------------------------------
-;! (1) _scheduler_run                                        1     1      0     307
-;!                                             13 COMRAM     1     1      0
+;! (1) _scheduler_run                                        1     1      0     209
+;!                                             15 COMRAM     1     1      0
 ;!                                NULL *
 ;!                           _led_task *
 ;! ---------------------------------------------------------------------------------
-;! (2) _led_task                                             0     0      0     177
+;! (2) _led_task                                             0     0      0     119
 ;!                         _led_toggle
 ;! ---------------------------------------------------------------------------------
-;! (3) _led_toggle                                           1     1      0     177
-;!                                             12 COMRAM     1     1      0
+;! (3) _led_toggle                                           1     1      0     119
+;!                                             14 COMRAM     1     1      0
 ;!                        _gpio_toggle
 ;! ---------------------------------------------------------------------------------
-;! (4) _gpio_toggle                                          5     4      1     130
-;!                                             11 COMRAM     1     0      1
-;!                                              0 BANK0      4     4      0
+;! (4) _gpio_toggle                                          3     2      1      90
+;!                                             11 COMRAM     3     2      1
 ;! ---------------------------------------------------------------------------------
 ;! (2) NULL(Fake)                                            0     0      0       0
 ;! ---------------------------------------------------------------------------------
 ;! (1) _scheduler_init                                       1     1      0      90
 ;!                                             11 COMRAM     1     1      0
 ;! ---------------------------------------------------------------------------------
-;! (1) _scheduler_add_task                                   4     0      4      68
-;!                                              0 BANK0      4     0      4
+;! (1) _scheduler_add_task                                   4     0      4      46
+;!                                             11 COMRAM     4     0      4
 ;! ---------------------------------------------------------------------------------
-;! (1) _led_init                                             0     0      0     358
+;! (1) _led_init                                             0     0      0     236
 ;!                          _gpio_init
 ;!                         _gpio_write
 ;! ---------------------------------------------------------------------------------
-;! (2) _gpio_write                                           7     5      2     253
-;!                                             11 COMRAM     2     0      2
-;!                                              0 BANK0      5     5      0
+;! (2) _gpio_write                                           5     3      2     166
+;!                                             11 COMRAM     5     3      2
 ;! ---------------------------------------------------------------------------------
-;! (2) _gpio_init                                            4     2      2     105
-;!                                             11 COMRAM     2     0      2
-;!                                              0 BANK0      2     2      0
+;! (2) _gpio_init                                            4     2      2      70
+;!                                             11 COMRAM     4     2      2
 ;! ---------------------------------------------------------------------------------
 ;! Estimated maximum stack depth 4
 ;! ---------------------------------------------------------------------------------
@@ -1691,26 +1688,26 @@ scheduler_run@i:	; 1 bytes @ 0xD
 ;!BITBANK1           256      0       0      0.0%
 ;!BANK1              256      0       0      0.0%
 ;!BITBANK0           160      0       0      0.0%
-;!BANK0              160      5       5      3.1%
+;!BANK0              160      0       0      0.0%
 ;!BITCOMRAM           94      0       0      0.0%
-;!COMRAM              94     14      83     88.3%
+;!COMRAM              94     16      78     83.0%
 ;!BITBIGSFRlh         81      0       0      0.0%
 ;!BITBIGSFRh          42      0       0      0.0%
 ;!BITBIGSFRll         35      0       0      0.0%
 ;!STACK                0      0       0      0.0%
-;!DATA                 0      0      87      0.0%
+;!DATA                 0      0      78      0.0%
 
 	global	_main
 
 ;; *************** function _main *****************
 ;; Defined at:
-;;		line 26 in file "main.c"
+;;		line 27 in file "main.c"
 ;; Parameters:    Size  Location     Type
 ;;		None
 ;; Auto vars:     Size  Location     Type
 ;;		None
 ;; Return value:  Size  Location     Type
-;;                  2   43[None  ] int 
+;;                  2   33[None  ] int 
 ;; Registers used:
 ;;		wreg, fsr1l, fsr1h, fsr2l, fsr2h, status,2, status,0, pcl, pclath, pclatu, tosl, prodl, prodh, cstack
 ;; Tracked objects:
@@ -1736,51 +1733,49 @@ scheduler_run@i:	; 1 bytes @ 0xD
 ;;
 psect	text0,class=CODE,space=0,reloc=2,group=0
 	file	"main.c"
-	line	26
+	line	27
 global __ptext0
 __ptext0:
 psect	text0
 	file	"main.c"
-	line	26
+	line	27
 	
 _main:
 ;incstack = 0
 	callstack 25
-	line	28
-	
-l1232:
-	call	_led_init	;wreg free
 	line	29
 	
-l1234:
-	call	_scheduler_init	;wreg free
+l1136:
+	call	_led_init	;wreg free
 	line	30
 	
-l1236:
+l1138:
+	call	_scheduler_init	;wreg free
+	line	31
+	
+l1140:
 	call	_timer0_init	;wreg free
-	line	32
+	line	33
 	
-l1238:
+l1142:
 		movlw	low(_led_task)
-	movlb	0	; () banked
-	movwf	((scheduler_add_task@task))&0ffh
+	movwf	((c:scheduler_add_task@task))^00h,c
 	movlw	high(_led_task)
-	movwf	((scheduler_add_task@task+1))&0ffh
+	movwf	((c:scheduler_add_task@task+1))^00h,c
 
-	movlw	high(01F4h)
-	movwf	((scheduler_add_task@period_ms+1))&0ffh
-	movlw	low(01F4h)
-	movwf	((scheduler_add_task@period_ms))&0ffh
+	clrf	((c:scheduler_add_task@period_ms+1))^00h,c
+	movlw	low(0C8h)
+	movwf	((c:scheduler_add_task@period_ms))^00h,c
 	call	_scheduler_add_task	;wreg free
-	line	36
+	line	37
 	
-l1240:
+l1144:
 	call	_scheduler_run	;wreg free
-	goto	l1240
+	goto	l1144
 	global	start
 	goto	start
 	callstack 0
-	line	39
+	line	41
 GLOBAL	__end_of_main
 	__end_of_main:
 	signat	_main,90
@@ -1829,7 +1824,7 @@ _timer0_init:
 	callstack 28
 	line	11
 	
-l1012:
+l1002:
 	clrf	((c:4053))^0f00h,c	;volatile
 	line	12
 	bcf	((c:4053))^0f00h,c,6	;volatile
@@ -1839,7 +1834,7 @@ l1012:
 	bcf	((c:4053))^0f00h,c,3	;volatile
 	line	15
 	
-l1014:
+l1004:
 	movf	((c:4053))^0f00h,c,w	;volatile
 	andlw	not (((1<<3)-1)<<0)
 	iorlw	(02h & ((1<<3)-1))<<0
@@ -1852,19 +1847,23 @@ l1014:
 	movwf	((c:4054))^0f00h,c	;volatile
 	line	21
 	
-l1016:
+l1006:
 	bcf	((c:4082))^0f00h,c,2	;volatile
 	line	22
 	
-l1018:
+l1008:
 	bsf	((c:4082))^0f00h,c,5	;volatile
 	line	24
 	
-l1020:
-	bsf	((c:4053))^0f00h,c,7	;volatile
+l1010:
+	bsf	((c:4082))^0f00h,c,7	;volatile
 	line	26
 	
-l166:
+l1012:
+	bsf	((c:4053))^0f00h,c,7	;volatile
+	line	28
+	
+l156:
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_timer0_init
@@ -1878,7 +1877,7 @@ GLOBAL	__end_of_timer0_init
 ;; Parameters:    Size  Location     Type
 ;;		None
 ;; Auto vars:     Size  Location     Type
-;;  i               1   13[COMRAM] unsigned char 
+;;  i               1   15[COMRAM] unsigned char 
 ;; Return value:  Size  Location     Type
 ;;                  1    wreg      void 
 ;; Registers used:
@@ -1916,12 +1915,12 @@ _scheduler_run:
 	callstack 25
 	line	21
 	
-l1220:
+l1124:
 	clrf	((c:scheduler_run@i))^00h,c
-	goto	l1230
+	goto	l1134
 	line	23
 	
-l1222:
+l1126:
 	movf	((c:scheduler_run@i))^00h,c,w
 	mullw	07h
 	movf	(prodl)^0f00h,c,w
@@ -1930,14 +1929,14 @@ l1222:
 	clrf	fsr2h
 	movf	indf2,w
 	btfsc	status,2
-	goto	u291
-	goto	u290
-u291:
-	goto	l1228
-u290:
+	goto	u201
+	goto	u200
+u201:
+	goto	l1132
+u200:
 	line	25
 	
-l1224:
+l1128:
 	movf	((c:scheduler_run@i))^00h,c,w
 	mullw	07h
 	movf	(prodl)^0f00h,c,w
@@ -1947,16 +1946,16 @@ l1224:
 	clrf	indf2
 	line	26
 	
-l1226:
+l1130:
 	movf	((c:scheduler_run@i))^00h,c,w
 	mullw	07h
 	movf	(prodl)^0f00h,c,w
 	addlw	low(_task_list)
 	movwf	fsr2l
 	clrf	fsr2h
-	call	u308
-	goto	u309
-u308:
+	call	u218
+	goto	u219
+u218:
 	push
 	movwf	pclath
 	movf	postinc2,w
@@ -1967,25 +1966,25 @@ u308:
 	movf	pclath,w
 	
 	return	;indir
-	u309:
+	u219:
 	line	28
 	
-l1228:
+l1132:
 	incf	((c:scheduler_run@i))^00h,c
 	
-l1230:
+l1134:
 		movf	((c:_task_count))^00h,c,w
 	subwf	((c:scheduler_run@i))^00h,c,w
 	btfss	status,0
-	goto	u311
-	goto	u310
+	goto	u221
+	goto	u220
 
-u311:
-	goto	l1222
-u310:
+u221:
+	goto	l1126
+u220:
 	line	29
 	
-l142:
+l132:
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_scheduler_run
@@ -1995,7 +1994,7 @@ GLOBAL	__end_of_scheduler_run
 
 ;; *************** function _led_task *****************
 ;; Defined at:
-;;		line 21 in file "main.c"
+;;		line 22 in file "main.c"
 ;; Parameters:    Size  Location     Type
 ;;		None
 ;; Auto vars:     Size  Location     Type
@@ -2025,25 +2024,25 @@ GLOBAL	__end_of_scheduler_run
 ;;
 psect	text3,class=CODE,space=0,reloc=2,group=0
 	file	"main.c"
-	line	21
+	line	22
 global __ptext3
 __ptext3:
 psect	text3
 	file	"main.c"
-	line	21
+	line	22
 	
 _led_task:
 ;incstack = 0
 	callstack 25
-	line	23
+	line	24
 	
-l1188:
+l1092:
 	movlw	(0)&0ffh
 	
 	call	_led_toggle
-	line	24
+	line	25
 	
-l39:
+l29:
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_led_task
@@ -2053,11 +2052,11 @@ GLOBAL	__end_of_led_task
 
 ;; *************** function _led_toggle *****************
 ;; Defined at:
-;;		line 55 in file "src/led.c"
+;;		line 57 in file "src/led.c"
 ;; Parameters:    Size  Location     Type
 ;;  led_id          1    wreg     unsigned char 
 ;; Auto vars:     Size  Location     Type
-;;  led_id          1   12[COMRAM] unsigned char 
+;;  led_id          1   14[COMRAM] unsigned char 
 ;; Return value:  Size  Location     Type
 ;;                  1    wreg      void 
 ;; Registers used:
@@ -2082,42 +2081,42 @@ GLOBAL	__end_of_led_task
 ;;
 psect	text4,class=CODE,space=0,reloc=2,group=0
 	file	"src/led.c"
-	line	55
+	line	57
 global __ptext4
 __ptext4:
 psect	text4
 	file	"src/led.c"
-	line	55
+	line	57
 	
 _led_toggle:
 ;incstack = 0
 	callstack 25
 	movwf	((c:led_toggle@led_id))^00h,c
-	line	56
+	line	58
 	
-l1178:
-	goto	l1186
-	line	59
+l1082:
+	goto	l1090
+	line	61
 	
-l1180:
+l1084:
 		movlw	low(_led1)
 	movwf	((c:gpio_toggle@p))^00h,c
 
 	call	_gpio_toggle	;wreg free
-	line	60
-	goto	l100
 	line	62
+	goto	l90
+	line	64
 	
-l1182:
+l1086:
 		movlw	low(_led2)
 	movwf	((c:gpio_toggle@p))^00h,c
 
 	call	_gpio_toggle	;wreg free
-	line	63
-	goto	l100
-	line	66
+	line	65
+	goto	l90
+	line	68
 	
-l1186:
+l1090:
 	movf	((c:led_toggle@led_id))^00h,c,w
 	; Switch size 1, requested type "simple"
 ; Number of cases is 2, Range of values is 0 to 1
@@ -2128,15 +2127,15 @@ l1186:
 
 	xorlw	0^0	; case 0
 	skipnz
-	goto	l1180
+	goto	l1084
 	xorlw	1^0	; case 1
 	skipnz
-	goto	l1182
-	goto	l100
+	goto	l1086
+	goto	l90
 
-	line	67
+	line	69
 	
-l100:
+l90:
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_led_toggle
@@ -2149,7 +2148,7 @@ GLOBAL	__end_of_led_toggle
 ;;		line 27 in file "src/gpio.c"
 ;; Parameters:    Size  Location     Type
 ;;  p               1   11[COMRAM] PTR struct .
-;;		 -> led2(9), led1(9), 
+;;		 -> led2(8), led1(8), 
 ;; Auto vars:     Size  Location     Type
 ;;		None
 ;; Return value:  Size  Location     Type
@@ -2163,9 +2162,9 @@ GLOBAL	__end_of_led_toggle
 ;; Data sizes:     COMRAM   BANK0   BANK1   BANK2   BANK3   BANK4   BANK5   BANK6   BANK7
 ;;      Params:         1       0       0       0       0       0       0       0       0
 ;;      Locals:         0       0       0       0       0       0       0       0       0
-;;      Temps:          0       4       0       0       0       0       0       0       0
-;;      Totals:         1       4       0       0       0       0       0       0       0
-;;Total ram usage:        5 bytes
+;;      Temps:          2       0       0       0       0       0       0       0       0
+;;      Totals:         3       0       0       0       0       0       0       0       0
+;;Total ram usage:        3 bytes
 ;; Hardware stack levels used: 1
 ;; Hardware stack levels required when called: 2
 ;; This function calls:
@@ -2188,68 +2187,62 @@ _gpio_toggle:
 	callstack 25
 	line	28
 	
-l1174:
+l1078:
 	movf	((c:gpio_toggle@p))^00h,c,w
 	movwf	fsr2l
 	clrf	fsr2h
-	movlw	low(08h)
+	movlw	low(07h)
 	addwf	fsr2l
 
 	movf	indf2,w
-	movlb	0	; () banked
-	movwf	(??_gpio_toggle+0)&0ffh
+	movwf	(??_gpio_toggle+0)^00h,c
 	movlw	(01h)&0ffh
-	movwf	(??_gpio_toggle+1)&0ffh
-	incf	((??_gpio_toggle+0))&0ffh
-	goto	u234
-u235:
+	movwf	(??_gpio_toggle+1)^00h,c
+	incf	((??_gpio_toggle+0))^00h,c
+	goto	u144
+u145:
 	bcf	status,0
-	rlcf	((??_gpio_toggle+1))&0ffh
-u234:
-	decfsz	((??_gpio_toggle+0))&0ffh
-	goto	u235
+	rlcf	((??_gpio_toggle+1))^00h,c
+u144:
+	decfsz	((??_gpio_toggle+0))^00h,c
+	goto	u145
 	movf	((c:gpio_toggle@p))^00h,c,w
 	movwf	fsr2l
 	clrf	fsr2h
 	movlw	low(06h)
 	addwf	fsr2l
 
-	movff	postinc2,??_gpio_toggle+2
-	movff	postdec2,??_gpio_toggle+2+1
-	movff	??_gpio_toggle+2,fsr2l
-	movff	??_gpio_toggle+2+1,fsr2h
-	movlb	0	; () banked
-	movf	((??_gpio_toggle+1))&0ffh,w
+	movf	indf2,w
+	movwf	fsr2l
+	clrf	fsr2h
+	movf	((??_gpio_toggle+1))^00h,c,w
 	xorwf	indf2
 	line	29
 	
-l1176:; BSR set to: 0
-
+l1080:
 	movf	((c:gpio_toggle@p))^00h,c,w
 	movwf	fsr2l
 	clrf	fsr2h
 	movlw	low(06h)
 	addwf	fsr2l
 
-	movff	postinc2,??_gpio_toggle+0
-	movff	postdec2,??_gpio_toggle+0+1
-	movff	??_gpio_toggle+0,fsr2l
-	movff	??_gpio_toggle+0+1,fsr2h
+	movf	indf2,w
+	movwf	fsr2l
+	clrf	fsr2h
 	movf	((c:gpio_toggle@p))^00h,c,w
 	movwf	fsr1l
 	clrf	fsr1h
 	movlw	low(02h)
 	addwf	fsr1l
 
-	movff	postinc1,??_gpio_toggle+2
-	movff	postdec1,??_gpio_toggle+2+1
-	movff	??_gpio_toggle+2,fsr1l
-	movff	??_gpio_toggle+2+1,fsr1h
+	movff	postinc1,??_gpio_toggle+0
+	movff	postdec1,??_gpio_toggle+0+1
+	movff	??_gpio_toggle+0,fsr1l
+	movff	??_gpio_toggle+0+1,fsr1h
 	movff	indf2,indf1
 	line	30
 	
-l126:; BSR set to: 0
-
+l116:
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_gpio_toggle
@@ -2295,17 +2288,16 @@ psect	text6
 	file	"src/scheduler.c"
 	line	6
 	
-_scheduler_init:; BSR set to: 0
-
+_scheduler_init:
 ;incstack = 0
 	callstack 28
 	line	8
 	
-l1000:
+l990:
 	clrf	((c:scheduler_init@i))^00h,c
 	line	10
 	
-l1006:
+l996:
 	movf	((c:scheduler_init@i))^00h,c,w
 	mullw	07h
 	movf	(prodl)^0f00h,c,w
@@ -2342,25 +2334,25 @@ l1006:
 	clrf	indf2
 	line	14
 	
-l1008:
+l998:
 	incf	((c:scheduler_init@i))^00h,c
 	
-l1010:
+l1000:
 		movlw	05h-1
 	cpfsgt	((c:scheduler_init@i))^00h,c
 	goto	u81
 	goto	u80
 
 u81:
-	goto	l1006
+	goto	l996
 u80:
 	
-l134:
+l124:
 	line	16
 	clrf	((c:_task_count))^00h,c
 	line	17
 	
-l135:
+l125:
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_scheduler_init
@@ -2372,9 +2364,9 @@ GLOBAL	__end_of_scheduler_init
 ;; Defined at:
 ;;		line 45 in file "src/scheduler.c"
 ;; Parameters:    Size  Location     Type
-;;  task            2    0[BANK0 ] PTR FTN()void 
+;;  task            2   11[COMRAM] PTR FTN()void 
 ;;		 -> led_task(1), 
-;;  period_ms       2    2[BANK0 ] unsigned short 
+;;  period_ms       2   13[COMRAM] unsigned short 
 ;; Auto vars:     Size  Location     Type
 ;;		None
 ;; Return value:  Size  Location     Type
@@ -2386,10 +2378,10 @@ GLOBAL	__end_of_scheduler_init
 ;;		On exit  : 0/0
 ;;		Unchanged: 0/0
 ;; Data sizes:     COMRAM   BANK0   BANK1   BANK2   BANK3   BANK4   BANK5   BANK6   BANK7
-;;      Params:         0       4       0       0       0       0       0       0       0
+;;      Params:         4       0       0       0       0       0       0       0       0
 ;;      Locals:         0       0       0       0       0       0       0       0       0
 ;;      Temps:          0       0       0       0       0       0       0       0       0
-;;      Totals:         0       4       0       0       0       0       0       0       0
+;;      Totals:         4       0       0       0       0       0       0       0       0
 ;;Total ram usage:        4 bytes
 ;; Hardware stack levels used: 1
 ;; Hardware stack levels required when called: 2
@@ -2412,27 +2404,27 @@ _scheduler_add_task:
 	callstack 28
 	line	47
 	
-l1210:
+l1114:
 		movlw	05h-1
 	cpfsgt	((c:_task_count))^00h,c
-	goto	u281
-	goto	u280
+	goto	u191
+	goto	u190
 
-u281:
-	goto	l1214
-u280:
-	goto	l153
+u191:
+	goto	l1118
+u190:
+	goto	l143
 	line	52
 	
-l1214:
+l1118:
 	movf	((c:_task_count))^00h,c,w
 	mullw	07h
 	movf	(prodl)^0f00h,c,w
 	addlw	low(_task_list)
 	movwf	fsr2l
 	clrf	fsr2h
-	movff	(scheduler_add_task@task),postinc2
-	movff	(scheduler_add_task@task+1),postdec2
+	movff	(c:scheduler_add_task@task),postinc2
+	movff	(c:scheduler_add_task@task+1),postdec2
 	line	53
 	movf	((c:_task_count))^00h,c,w
 	mullw	07h
@@ -2440,8 +2432,8 @@ l1214:
 	addlw	low(_task_list+02h)
 	movwf	fsr2l
 	clrf	fsr2h
-	movff	(scheduler_add_task@period_ms),postinc2
-	movff	(scheduler_add_task@period_ms+1),postdec2
+	movff	(c:scheduler_add_task@period_ms),postinc2
+	movff	(c:scheduler_add_task@period_ms+1),postdec2
 	line	54
 	movf	((c:_task_count))^00h,c,w
 	mullw	07h
@@ -2461,11 +2453,11 @@ l1214:
 	clrf	indf2
 	line	57
 	
-l1216:
+l1120:
 	incf	((c:_task_count))^00h,c
 	line	59
 	
-l153:
+l143:
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_scheduler_add_task
@@ -2475,7 +2467,7 @@ GLOBAL	__end_of_scheduler_add_task
 
 ;; *************** function _led_init *****************
 ;; Defined at:
-;;		line 19 in file "src/led.c"
+;;		line 21 in file "src/led.c"
 ;; Parameters:    Size  Location     Type
 ;;		None
 ;; Auto vars:     Size  Location     Type
@@ -2505,45 +2497,29 @@ GLOBAL	__end_of_scheduler_add_task
 ;;
 psect	text8,class=CODE,space=0,reloc=2,group=0
 	file	"src/led.c"
-	line	19
+	line	21
 global __ptext8
 __ptext8:
 psect	text8
 	file	"src/led.c"
-	line	19
+	line	21
 	
 _led_init:
 ;incstack = 0
 	callstack 27
-	line	21
-	
-l1204:
-		movlw	low(_led1)
-	movwf	((c:gpio_init@p))^00h,c
-
-	movlw	low(0)
-	movwf	((c:gpio_init@dir))^00h,c
-	call	_gpio_init	;wreg free
-	line	22
-	
-l1206:
-		movlw	low(_led1)
-	movwf	((c:gpio_write@p))^00h,c
-
-	movlw	low(0)
-	movwf	((c:gpio_write@level))^00h,c
-	call	_gpio_write	;wreg free
 	line	23
 	
-l1208:
-		movlw	low(_led2)
+l1108:
+		movlw	low(_led1)
 	movwf	((c:gpio_init@p))^00h,c
 
 	movlw	low(0)
 	movwf	((c:gpio_init@dir))^00h,c
 	call	_gpio_init	;wreg free
 	line	24
-		movlw	low(_led2)
+	
+l1110:
+		movlw	low(_led1)
 	movwf	((c:gpio_write@p))^00h,c
 
 	movlw	low(0)
@@ -2551,7 +2527,23 @@ l1208:
 	call	_gpio_write	;wreg free
 	line	25
 	
-l76:
+l1112:
+		movlw	low(_led2)
+	movwf	((c:gpio_init@p))^00h,c
+
+	movlw	low(0)
+	movwf	((c:gpio_init@dir))^00h,c
+	call	_gpio_init	;wreg free
+	line	26
+		movlw	low(_led2)
+	movwf	((c:gpio_write@p))^00h,c
+
+	movlw	low(0)
+	movwf	((c:gpio_write@level))^00h,c
+	call	_gpio_write	;wreg free
+	line	27
+	
+l66:
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_led_init
@@ -2564,7 +2556,7 @@ GLOBAL	__end_of_led_init
 ;;		line 12 in file "src/gpio.c"
 ;; Parameters:    Size  Location     Type
 ;;  p               1   11[COMRAM] PTR struct .
-;;		 -> led2(9), led1(9), 
+;;		 -> led2(8), led1(8), 
 ;;  level           1   12[COMRAM] enum E45
 ;; Auto vars:     Size  Location     Type
 ;;		None
@@ -2579,9 +2571,9 @@ GLOBAL	__end_of_led_init
 ;; Data sizes:     COMRAM   BANK0   BANK1   BANK2   BANK3   BANK4   BANK5   BANK6   BANK7
 ;;      Params:         2       0       0       0       0       0       0       0       0
 ;;      Locals:         0       0       0       0       0       0       0       0       0
-;;      Temps:          0       5       0       0       0       0       0       0       0
-;;      Totals:         2       5       0       0       0       0       0       0       0
-;;Total ram usage:        7 bytes
+;;      Temps:          3       0       0       0       0       0       0       0       0
+;;      Totals:         5       0       0       0       0       0       0       0       0
+;;Total ram usage:        5 bytes
 ;; Hardware stack levels used: 1
 ;; Hardware stack levels required when called: 2
 ;; This function calls:
@@ -2606,119 +2598,110 @@ _gpio_write:
 	callstack 27
 	line	13
 	
-l1196:
+l1100:
 		decf	((c:gpio_write@level))^00h,c,w
 	btfss	status,2
-	goto	u251
-	goto	u250
+	goto	u161
+	goto	u160
 
-u251:
-	goto	l1200
-u250:
+u161:
+	goto	l1104
+u160:
 	line	14
 	
-l1198:
+l1102:
 	movf	((c:gpio_write@p))^00h,c,w
 	movwf	fsr2l
 	clrf	fsr2h
-	movlw	low(08h)
+	movlw	low(07h)
 	addwf	fsr2l
 
 	movf	indf2,w
-	movlb	0	; () banked
-	movwf	(??_gpio_write+0)&0ffh
+	movwf	(??_gpio_write+0)^00h,c
 	movlw	(01h)&0ffh
-	movwf	(??_gpio_write+1)&0ffh
-	incf	((??_gpio_write+0))&0ffh
-	goto	u264
-u265:
+	movwf	(??_gpio_write+1)^00h,c
+	incf	((??_gpio_write+0))^00h,c
+	goto	u174
+u175:
 	bcf	status,0
-	rlcf	((??_gpio_write+1))&0ffh
-u264:
-	decfsz	((??_gpio_write+0))&0ffh
-	goto	u265
+	rlcf	((??_gpio_write+1))^00h,c
+u174:
+	decfsz	((??_gpio_write+0))^00h,c
+	goto	u175
 	movf	((c:gpio_write@p))^00h,c,w
 	movwf	fsr2l
 	clrf	fsr2h
 	movlw	low(06h)
 	addwf	fsr2l
 
-	movff	postinc2,??_gpio_write+2
-	movff	postdec2,??_gpio_write+2+1
-	movff	??_gpio_write+2,fsr2l
-	movff	??_gpio_write+2+1,fsr2h
-	movlb	0	; () banked
-	movf	((??_gpio_write+1))&0ffh,w
+	movf	indf2,w
+	movwf	fsr2l
+	clrf	fsr2h
+	movf	((??_gpio_write+1))^00h,c,w
 	iorwf	indf2
 	line	15
-	goto	l1202
+	goto	l1106
 	line	18
 	
-l1200:
+l1104:
 	movf	((c:gpio_write@p))^00h,c,w
 	movwf	fsr2l
 	clrf	fsr2h
-	movlw	low(08h)
+	movlw	low(07h)
 	addwf	fsr2l
 
 	movf	indf2,w
-	movlb	0	; () banked
-	movwf	(??_gpio_write+0)&0ffh
+	movwf	(??_gpio_write+0)^00h,c
 	movlw	(01h)&0ffh
-	movwf	(??_gpio_write+1)&0ffh
-	incf	((??_gpio_write+0))&0ffh
-	goto	u274
-u275:
+	movwf	(??_gpio_write+1)^00h,c
+	incf	((??_gpio_write+0))^00h,c
+	goto	u184
+u185:
 	bcf	status,0
-	rlcf	((??_gpio_write+1))&0ffh
-u274:
-	decfsz	((??_gpio_write+0))&0ffh
-	goto	u275
-	movlb	0	; () banked
-	movf	((??_gpio_write+1))&0ffh,w
+	rlcf	((??_gpio_write+1))^00h,c
+u184:
+	decfsz	((??_gpio_write+0))^00h,c
+	goto	u185
+	movf	((??_gpio_write+1))^00h,c,w
 	xorlw	0ffh
-	movwf	(??_gpio_write+2)&0ffh
+	movwf	(??_gpio_write+2)^00h,c
 	movf	((c:gpio_write@p))^00h,c,w
 	movwf	fsr2l
 	clrf	fsr2h
 	movlw	low(06h)
 	addwf	fsr2l
 
-	movff	postinc2,??_gpio_write+3
-	movff	postdec2,??_gpio_write+3+1
-	movff	??_gpio_write+3,fsr2l
-	movff	??_gpio_write+3+1,fsr2h
-	movf	((??_gpio_write+2))&0ffh,w
+	movf	indf2,w
+	movwf	fsr2l
+	clrf	fsr2h
+	movf	((??_gpio_write+2))^00h,c,w
 	andwf	indf2
 	line	20
 	
-l1202:; BSR set to: 0
-
+l1106:
 	movf	((c:gpio_write@p))^00h,c,w
 	movwf	fsr2l
 	clrf	fsr2h
 	movlw	low(06h)
 	addwf	fsr2l
 
-	movff	postinc2,??_gpio_write+0
-	movff	postdec2,??_gpio_write+0+1
-	movff	??_gpio_write+0,fsr2l
-	movff	??_gpio_write+0+1,fsr2h
+	movf	indf2,w
+	movwf	fsr2l
+	clrf	fsr2h
 	movf	((c:gpio_write@p))^00h,c,w
 	movwf	fsr1l
 	clrf	fsr1h
 	movlw	low(02h)
 	addwf	fsr1l
 
-	movff	postinc1,??_gpio_write+2
-	movff	postdec1,??_gpio_write+2+1
-	movff	??_gpio_write+2,fsr1l
-	movff	??_gpio_write+2+1,fsr1h
+	movff	postinc1,??_gpio_write+0
+	movff	postdec1,??_gpio_write+0+1
+	movff	??_gpio_write+0,fsr1l
+	movff	??_gpio_write+0+1,fsr1h
 	movff	indf2,indf1
 	line	21
 	
-l120:; BSR set to: 0
-
+l110:
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_gpio_write
@@ -2731,7 +2714,7 @@ GLOBAL	__end_of_gpio_write
 ;;		line 3 in file "src/gpio.c"
 ;; Parameters:    Size  Location     Type
 ;;  p               1   11[COMRAM] PTR struct .
-;;		 -> led2(9), led1(9), 
+;;		 -> led2(8), led1(8), 
 ;;  dir             1   12[COMRAM] enum E41
 ;; Auto vars:     Size  Location     Type
 ;;		None
@@ -2746,8 +2729,8 @@ GLOBAL	__end_of_gpio_write
 ;; Data sizes:     COMRAM   BANK0   BANK1   BANK2   BANK3   BANK4   BANK5   BANK6   BANK7
 ;;      Params:         2       0       0       0       0       0       0       0       0
 ;;      Locals:         0       0       0       0       0       0       0       0       0
-;;      Temps:          0       2       0       0       0       0       0       0       0
-;;      Totals:         2       2       0       0       0       0       0       0       0
+;;      Temps:          2       0       0       0       0       0       0       0       0
+;;      Totals:         4       0       0       0       0       0       0       0       0
 ;;Total ram usage:        4 bytes
 ;; Hardware stack levels used: 1
 ;; Hardware stack levels required when called: 2
@@ -2765,23 +2748,22 @@ psect	text10
 	file	"src/gpio.c"
 	line	3
 	
-_gpio_init:; BSR set to: 0
-
+_gpio_init:
 ;incstack = 0
 	callstack 27
 	line	4
 	
-l1190:
+l1094:
 	movf	((c:gpio_init@dir))^00h,c,w
 	btfss	status,2
-	goto	u241
-	goto	u240
-u241:
-	goto	l1194
-u240:
+	goto	u151
+	goto	u150
+u151:
+	goto	l1098
+u150:
 	line	5
 	
-l1192:
+l1096:
 	movf	((c:gpio_init@p))^00h,c,w
 	movwf	fsr2l
 	clrf	fsr2h
@@ -2791,10 +2773,10 @@ l1192:
 	movff	??_gpio_init+0+1,fsr2h
 	clrf	indf2
 	line	6
-	goto	l115
+	goto	l105
 	line	8
 	
-l1194:
+l1098:
 	movf	((c:gpio_init@p))^00h,c,w
 	movwf	fsr2l
 	clrf	fsr2h
@@ -2806,7 +2788,7 @@ l1194:
 	movwf	indf2
 	line	10
 	
-l115:
+l105:
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_gpio_init
@@ -2816,7 +2798,7 @@ GLOBAL	__end_of_gpio_init
 
 ;; *************** function _isr *****************
 ;; Defined at:
-;;		line 7 in file "main.c"
+;;		line 8 in file "main.c"
 ;; Parameters:    Size  Location     Type
 ;;		None
 ;; Auto vars:     Size  Location     Type
@@ -2850,7 +2832,7 @@ global __pintcode
 __pintcode:
 psect	intcode
 	file	"main.c"
-	line	7
+	line	8
 	
 _isr:
 ;incstack = 0
@@ -2870,34 +2852,34 @@ int_func:
 	movff	fsr2h+0,??_isr+3
 	movff	prodl+0,??_isr+4
 	movff	prodh+0,??_isr+5
-	line	9
+	line	10
 	
-i2l1044:
+i2l1036:
 	btfss	((c:4082))^0f00h,c,2	;volatile
 	goto	i2u13_41
 	goto	i2u13_40
 i2u13_41:
-	goto	i2l36
+	goto	i2l26
 i2u13_40:
-	line	11
+	line	12
 	
-i2l1046:
+i2l1038:
 	bcf	((c:4082))^0f00h,c,2	;volatile
-	line	14
+	line	15
 	
-i2l1048:
+i2l1040:
 	movlw	low(0F6h)
 	movwf	((c:4055))^0f00h,c	;volatile
-	line	15
+	line	16
 	movlw	low(03Ch)
 	movwf	((c:4054))^0f00h,c	;volatile
-	line	17
+	line	18
 	
-i2l1050:
+i2l1042:
 	call	_scheduler_tick	;wreg free
-	line	19
+	line	20
 	
-i2l36:
+i2l26:
 	movff	??_isr+5,prodh+0
 	movff	??_isr+4,prodl+0
 	movff	??_isr+3,fsr2h+0
@@ -2954,12 +2936,12 @@ _scheduler_tick:
 	callstack 25
 	line	33
 	
-i2l982:
+i2l972:
 	clrf	((c:scheduler_tick@i))^00h,c
-	goto	i2l992
+	goto	i2l982
 	line	35
 	
-i2l984:
+i2l974:
 	movf	((c:scheduler_tick@i))^00h,c,w
 	mullw	07h
 	movf	(prodl)^0f00h,c,w
@@ -2971,7 +2953,7 @@ i2l984:
 	addwfc	postdec2
 	line	37
 	
-i2l986:
+i2l976:
 	movf	((c:scheduler_tick@i))^00h,c,w
 	mullw	07h
 	movf	(prodl)^0f00h,c,w
@@ -2993,11 +2975,11 @@ i2l986:
 	goto	i2u6_40
 
 i2u6_41:
-	goto	i2l990
+	goto	i2l980
 i2u6_40:
 	line	39
 	
-i2l988:
+i2l978:
 	movf	((c:scheduler_tick@i))^00h,c,w
 	mullw	07h
 	movf	(prodl)^0f00h,c,w
@@ -3017,10 +2999,10 @@ i2l988:
 	movwf	indf2
 	line	42
 	
-i2l990:
+i2l980:
 	incf	((c:scheduler_tick@i))^00h,c
 	
-i2l992:
+i2l982:
 		movf	((c:_task_count))^00h,c,w
 	subwf	((c:scheduler_tick@i))^00h,c,w
 	btfss	status,0
@@ -3028,11 +3010,11 @@ i2l992:
 	goto	i2u7_40
 
 i2u7_41:
-	goto	i2l984
+	goto	i2l974
 i2u7_40:
 	line	43
 	
-i2l149:
+i2l139:
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_scheduler_tick
