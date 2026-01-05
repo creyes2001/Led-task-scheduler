@@ -24,6 +24,11 @@ void led_task(void)
 	led_toggle(0);
 }
 
+void led1_task(void)
+{
+	led_toggle(1);
+}
+
 int main(void)
 {
 	led_init();
@@ -31,7 +36,7 @@ int main(void)
 	timer0_init();
 
 	scheduler_add_task(led_task, 200);
-
+	scheduler_add_task(led1_task,500);
 	while(1)
 	{
 		scheduler_run();

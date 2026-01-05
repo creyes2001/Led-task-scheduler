@@ -88,6 +88,8 @@ GPIO_HIGH 1
 "22
 [v _led_task led_task `(v  1 e 1 0 ]
 "27
+[v _led1_task led1_task `(v  1 e 1 0 ]
+"32
 [v _main main `(i  1 e 2 0 ]
 "3 /home/reyes/embedded/driver_test/led_task_scheduler/src/gpio.c
 [v _gpio_init gpio_init `(v  1 e 1 0 ]
@@ -115,7 +117,7 @@ GPIO_HIGH 1
 [v _TRISD TRISD `VEuc  1 e 1 @3989 ]
 "8067
 [v _T0CON T0CON `VEuc  1 e 1 @4053 ]
-[s S259 . 1 `uc 1 T0PS 1 0 :3:0 
+[s S260 . 1 `uc 1 T0PS 1 0 :3:0 
 `uc 1 PSA 1 0 :1:3 
 `uc 1 T0SE 1 0 :1:4 
 `uc 1 T0CS 1 0 :1:5 
@@ -123,12 +125,12 @@ GPIO_HIGH 1
 `uc 1 TMR0ON 1 0 :1:7 
 ]
 "8087
-[s S266 . 1 `uc 1 T0PS0 1 0 :1:0 
+[s S267 . 1 `uc 1 T0PS0 1 0 :1:0 
 `uc 1 T0PS1 1 0 :1:1 
 `uc 1 T0PS2 1 0 :1:2 
 ]
-[u S270 . 1 `S259 1 . 1 0 `S266 1 . 1 0 ]
-[v _T0CONbits T0CONbits `VES270  1 e 1 @4053 ]
+[u S271 . 1 `S260 1 . 1 0 `S267 1 . 1 0 ]
+[v _T0CONbits T0CONbits `VES271  1 e 1 @4053 ]
 "8144
 [v _TMR0L TMR0L `VEuc  1 e 1 @4054 ]
 "8151
@@ -160,20 +162,20 @@ GPIO_HIGH 1
 [v _INTCONbits INTCONbits `VES46  1 e 1 @4082 ]
 "10 /home/reyes/embedded/driver_test/led_task_scheduler/inc/gpio.h
 [v _latD_shadow latD_shadow `uc  1 s 1 latD_shadow ]
-[s S126 . 8 `*.39VEuc 1 tris 2 0 `*.39VEuc 1 lat 2 2 `*.39VEuc 1 port 2 4 `*.30uc 1 shadow 1 6 `uc 1 pin 1 7 ]
+[s S127 . 8 `*.39VEuc 1 tris 2 0 `*.39VEuc 1 lat 2 2 `*.39VEuc 1 port 2 4 `*.30uc 1 shadow 1 6 `uc 1 pin 1 7 ]
 "5 /home/reyes/embedded/driver_test/led_task_scheduler/src/led.c
-[v _led1 led1 `S126  1 e 8 0 ]
+[v _led1 led1 `S127  1 e 8 0 ]
 "13
-[v _led2 led2 `S126  1 e 8 0 ]
-[s S230 . 7 `*.37(v 1 task 2 0 `us 1 period_ms 2 2 `us 1 counter_ms 2 4 `uc 1 ready 1 6 ]
+[v _led2 led2 `S127  1 e 8 0 ]
+[s S231 . 7 `*.37(v 1 task 2 0 `us 1 period_ms 2 2 `us 1 counter_ms 2 4 `uc 1 ready 1 6 ]
 "3 /home/reyes/embedded/driver_test/led_task_scheduler/src/scheduler.c
-[v _task_list task_list `[5]S230  1 s 35 task_list ]
+[v _task_list task_list `[5]S231  1 s 35 task_list ]
 "4
 [v _task_count task_count `uc  1 s 1 task_count ]
-"27 /home/reyes/embedded/driver_test/led_task_scheduler/main.c
+"32 /home/reyes/embedded/driver_test/led_task_scheduler/main.c
 [v _main main `(i  1 e 2 0 ]
 {
-"41
+"46
 } 0
 "4 /home/reyes/embedded/driver_test/led_task_scheduler/src/timer.c
 [v _timer0_init timer0_init `(v  1 e 1 0 ]
@@ -187,7 +189,12 @@ GPIO_HIGH 1
 [v scheduler_run@i i `uc  1 a 1 15 ]
 "29
 } 0
-"22 /home/reyes/embedded/driver_test/led_task_scheduler/main.c
+"27 /home/reyes/embedded/driver_test/led_task_scheduler/main.c
+[v _led1_task led1_task `(v  1 e 1 0 ]
+{
+"30
+} 0
+"22
 [v _led_task led_task `(v  1 e 1 0 ]
 {
 "25
@@ -203,8 +210,8 @@ GPIO_HIGH 1
 "27 /home/reyes/embedded/driver_test/led_task_scheduler/src/gpio.c
 [v _gpio_toggle gpio_toggle `(v  1 e 1 0 ]
 {
-[s S126 . 8 `*.39VEuc 1 tris 2 0 `*.39VEuc 1 lat 2 2 `*.39VEuc 1 port 2 4 `*.30uc 1 shadow 1 6 `uc 1 pin 1 7 ]
-[v gpio_toggle@p p `*.30S126  1 p 1 11 ]
+[s S127 . 8 `*.39VEuc 1 tris 2 0 `*.39VEuc 1 lat 2 2 `*.39VEuc 1 port 2 4 `*.30uc 1 shadow 1 6 `uc 1 pin 1 7 ]
+[v gpio_toggle@p p `*.30S127  1 p 1 11 ]
 "30
 } 0
 "6 /home/reyes/embedded/driver_test/led_task_scheduler/src/scheduler.c
@@ -229,16 +236,16 @@ GPIO_HIGH 1
 "12 /home/reyes/embedded/driver_test/led_task_scheduler/src/gpio.c
 [v _gpio_write gpio_write `(v  1 e 1 0 ]
 {
-[s S126 . 8 `*.39VEuc 1 tris 2 0 `*.39VEuc 1 lat 2 2 `*.39VEuc 1 port 2 4 `*.30uc 1 shadow 1 6 `uc 1 pin 1 7 ]
-[v gpio_write@p p `*.30S126  1 p 1 11 ]
+[s S127 . 8 `*.39VEuc 1 tris 2 0 `*.39VEuc 1 lat 2 2 `*.39VEuc 1 port 2 4 `*.30uc 1 shadow 1 6 `uc 1 pin 1 7 ]
+[v gpio_write@p p `*.30S127  1 p 1 11 ]
 [v gpio_write@level level `E45  1 p 1 12 ]
 "21
 } 0
 "3
 [v _gpio_init gpio_init `(v  1 e 1 0 ]
 {
-[s S126 . 8 `*.39VEuc 1 tris 2 0 `*.39VEuc 1 lat 2 2 `*.39VEuc 1 port 2 4 `*.30uc 1 shadow 1 6 `uc 1 pin 1 7 ]
-[v gpio_init@p p `*.30S126  1 p 1 11 ]
+[s S127 . 8 `*.39VEuc 1 tris 2 0 `*.39VEuc 1 lat 2 2 `*.39VEuc 1 port 2 4 `*.30uc 1 shadow 1 6 `uc 1 pin 1 7 ]
+[v gpio_init@p p `*.30S127  1 p 1 11 ]
 [v gpio_init@dir dir `E41  1 p 1 12 ]
 "10
 } 0

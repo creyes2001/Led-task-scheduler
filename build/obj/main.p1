@@ -443,35 +443,48 @@ Version 4.0 HI-TECH Software Intermediate Code
 "25
 [e :UE 394 ]
 }
-[v $root$_main `(v ~T0 @X0 0 e ]
 "27
-[v _main `(i ~T0 @X0 1 ef ]
+[v _led1_task `(v ~T0 @X0 1 ef ]
 "28
+{
+[e :U _led1_task ]
+[f ]
+"29
+[e ( _led_toggle (1 -> -> 1 `i `uc ]
+"30
+[e :UE 395 ]
+}
+[v $root$_main `(v ~T0 @X0 0 e ]
+"32
+[v _main `(i ~T0 @X0 1 ef ]
+"33
 {
 [e :U _main ]
 [f ]
-"29
+"34
 [e ( _led_init ..  ]
-"30
-[e ( _scheduler_init ..  ]
-"31
-[e ( _timer0_init ..  ]
-"33
-[e ( _scheduler_add_task (2 , &U _led_task -> -> 200 `i `us ]
 "35
-[e :U 397 ]
+[e ( _scheduler_init ..  ]
 "36
-{
-"37
-[e ( _scheduler_run ..  ]
+[e ( _timer0_init ..  ]
+"38
+[e ( _scheduler_add_task (2 , &U _led_task -> -> 200 `i `us ]
 "39
-}
-[e :U 396 ]
-[e $U 397  ]
-[e :U 398 ]
+[e ( _scheduler_add_task (2 , &U _led1_task -> -> 500 `i `us ]
 "40
-[e ) -> 0 `i ]
-[e $UE 395  ]
+[e :U 398 ]
 "41
-[e :UE 395 ]
+{
+"42
+[e ( _scheduler_run ..  ]
+"44
+}
+[e :U 397 ]
+[e $U 398  ]
+[e :U 399 ]
+"45
+[e ) -> 0 `i ]
+[e $UE 396  ]
+"46
+[e :UE 396 ]
 }

@@ -1142,8 +1142,10 @@ TOSU equ 0FFFh ;#
 	FNCALL	_main,_scheduler_init
 	FNCALL	_main,_scheduler_run
 	FNCALL	_main,_timer0_init
+	FNCALL	_scheduler_run,_led1_task
 	FNCALL	_scheduler_run,_led_task
 	FNCALL	_led_task,_led_toggle
+	FNCALL	_led1_task,_led_toggle
 	FNCALL	_led_toggle,_gpio_toggle
 	FNCALL	_led_init,_gpio_init
 	FNCALL	_led_init,_gpio_write
@@ -1244,15 +1246,15 @@ _task_list:
        ds      35
 _task_count:
        ds      1
-_latE_shadow@gpio$F198:
+_latE_shadow@gpio$F199:
        ds      1
-_latD_shadow@gpio$F197:
+_latD_shadow@gpio$F198:
        ds      1
-_latC_shadow@gpio$F196:
+_latC_shadow@gpio$F197:
        ds      1
-_latB_shadow@gpio$F195:
+_latB_shadow@gpio$F196:
        ds      1
-_latA_shadow@gpio$F194:
+_latA_shadow@gpio$F195:
        ds      1
 _latE_shadow:
        ds      1
@@ -1332,6 +1334,7 @@ __pcstackCOMRAM:
 ?_scheduler_run:	; 1 bytes @ 0x0
 ?_isr:	; 1 bytes @ 0x0
 ?_led_task:	; 1 bytes @ 0x0
+?_led1_task:	; 1 bytes @ 0x0
 ?_main:	; 2 bytes @ 0x0
 ??_scheduler_tick:	; 1 bytes @ 0x0
 	ds   4
@@ -1377,6 +1380,7 @@ scheduler_run@i:	; 1 bytes @ 0xF
 ??_scheduler_add_task:	; 1 bytes @ 0xF
 ??_scheduler_run:	; 1 bytes @ 0xF
 ??_led_task:	; 1 bytes @ 0xF
+??_led1_task:	; 1 bytes @ 0xF
 	ds   1
 ??_led_init:	; 1 bytes @ 0x10
 ??_main:	; 1 bytes @ 0x10
@@ -1485,26 +1489,26 @@ scheduler_run@i:	; 1 bytes @ 0xF
 ;!    led2$tris	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> TRISD(BIGSFR[1]), 
 ;!
-;!    S126$lat	PTR volatile unsigned char  size(2) Largest target is 1
+;!    S127$lat	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> LATD(BIGSFR[1]), 
 ;!
-;!    S126$port	PTR volatile unsigned char  size(2) Largest target is 1
+;!    S127$port	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> PORTD(BIGSFR[1]), 
 ;!
-;!    S126$shadow	PTR unsigned char  size(1) Largest target is 1
+;!    S127$shadow	PTR unsigned char  size(1) Largest target is 1
 ;!		 -> latD_shadow(COMRAM[1]), 
 ;!
-;!    S126$tris	PTR volatile unsigned char  size(2) Largest target is 1
+;!    S127$tris	PTR volatile unsigned char  size(2) Largest target is 1
 ;!		 -> TRISD(BIGSFR[1]), 
 ;!
-;!    S230$task	PTR FTN()void  size(2) Largest target is 1
-;!		 -> led_task(), NULL(), 
+;!    S231$task	PTR FTN()void  size(2) Largest target is 1
+;!		 -> led1_task(), led_task(), NULL(), 
 ;!
 ;!    scheduler_add_task@task	PTR FTN()void  size(2) Largest target is 1
-;!		 -> led_task(), 
+;!		 -> led1_task(), led_task(), 
 ;!
 ;!    task_list$task	PTR FTN()void  size(2) Largest target is 1
-;!		 -> led_task(), NULL(), 
+;!		 -> led1_task(), led_task(), NULL(), 
 ;!
 
 
@@ -1513,6 +1517,7 @@ scheduler_run@i:	; 1 bytes @ 0xF
 ;!
 ;!    _main->_scheduler_run
 ;!    _led_task->_led_toggle
+;!    _led1_task->_led_toggle
 ;!    _led_toggle->_gpio_toggle
 ;!    _led_init->_gpio_write
 ;!
@@ -1594,7 +1599,7 @@ scheduler_run@i:	; 1 bytes @ 0xF
 ;! ---------------------------------------------------------------------------------
 ;! (Depth) Function   	        Calls       Base Space   Used Autos Params    Refs
 ;! ---------------------------------------------------------------------------------
-;! (0) _main                                                 0     0      0     581
+;! (0) _main                                                 0     0      0     702
 ;!                           _led_init
 ;!                 _scheduler_add_task
 ;!                     _scheduler_init
@@ -1603,12 +1608,16 @@ scheduler_run@i:	; 1 bytes @ 0xF
 ;! ---------------------------------------------------------------------------------
 ;! (1) _timer0_init                                          0     0      0       0
 ;! ---------------------------------------------------------------------------------
-;! (1) _scheduler_run                                        1     1      0     209
+;! (1) _scheduler_run                                        1     1      0     328
 ;!                                             15 COMRAM     1     1      0
 ;!                                NULL *
+;!                          _led1_task *
 ;!                           _led_task *
 ;! ---------------------------------------------------------------------------------
 ;! (2) _led_task                                             0     0      0     119
+;!                         _led_toggle
+;! ---------------------------------------------------------------------------------
+;! (2) _led1_task                                            0     0      0     119
 ;!                         _led_toggle
 ;! ---------------------------------------------------------------------------------
 ;! (3) _led_toggle                                           1     1      0     119
@@ -1623,7 +1632,7 @@ scheduler_run@i:	; 1 bytes @ 0xF
 ;! (1) _scheduler_init                                       1     1      0      90
 ;!                                             11 COMRAM     1     1      0
 ;! ---------------------------------------------------------------------------------
-;! (1) _scheduler_add_task                                   4     0      4      46
+;! (1) _scheduler_add_task                                   4     0      4      48
 ;!                                             11 COMRAM     4     0      4
 ;! ---------------------------------------------------------------------------------
 ;! (1) _led_init                                             0     0      0     236
@@ -1660,9 +1669,11 @@ scheduler_run@i:	; 1 bytes @ 0xF
 ;!   _scheduler_init
 ;!   _scheduler_run
 ;!     NULL(Fake) *
-;!     _led_task *
+;!     _led1_task *
 ;!       _led_toggle
 ;!         _gpio_toggle
+;!     _led_task *
+;!       _led_toggle
 ;!   _timer0_init
 ;!
 ;! _isr (ROOT)
@@ -1701,13 +1712,13 @@ scheduler_run@i:	; 1 bytes @ 0xF
 
 ;; *************** function _main *****************
 ;; Defined at:
-;;		line 27 in file "main.c"
+;;		line 32 in file "main.c"
 ;; Parameters:    Size  Location     Type
 ;;		None
 ;; Auto vars:     Size  Location     Type
 ;;		None
 ;; Return value:  Size  Location     Type
-;;                  2   33[None  ] int 
+;;                  2   36[None  ] int 
 ;; Registers used:
 ;;		wreg, fsr1l, fsr1h, fsr2l, fsr2h, status,2, status,0, pcl, pclath, pclatu, tosl, prodl, prodh, cstack
 ;; Tracked objects:
@@ -1733,31 +1744,31 @@ scheduler_run@i:	; 1 bytes @ 0xF
 ;;
 psect	text0,class=CODE,space=0,reloc=2,group=0
 	file	"main.c"
-	line	27
+	line	32
 global __ptext0
 __ptext0:
 psect	text0
 	file	"main.c"
-	line	27
+	line	32
 	
 _main:
 ;incstack = 0
 	callstack 25
-	line	29
+	line	34
 	
-l1136:
+l1145:
 	call	_led_init	;wreg free
-	line	30
+	line	35
 	
-l1138:
+l1147:
 	call	_scheduler_init	;wreg free
-	line	31
+	line	36
 	
-l1140:
+l1149:
 	call	_timer0_init	;wreg free
-	line	33
+	line	38
 	
-l1142:
+l1151:
 		movlw	low(_led_task)
 	movwf	((c:scheduler_add_task@task))^00h,c
 	movlw	high(_led_task)
@@ -1767,15 +1778,28 @@ l1142:
 	movlw	low(0C8h)
 	movwf	((c:scheduler_add_task@period_ms))^00h,c
 	call	_scheduler_add_task	;wreg free
-	line	37
+	line	39
 	
-l1144:
+l1153:
+		movlw	low(_led1_task)
+	movwf	((c:scheduler_add_task@task))^00h,c
+	movlw	high(_led1_task)
+	movwf	((c:scheduler_add_task@task+1))^00h,c
+
+	movlw	high(01F4h)
+	movwf	((c:scheduler_add_task@period_ms+1))^00h,c
+	movlw	low(01F4h)
+	movwf	((c:scheduler_add_task@period_ms))^00h,c
+	call	_scheduler_add_task	;wreg free
+	line	42
+	
+l1155:
 	call	_scheduler_run	;wreg free
-	goto	l1144
+	goto	l1155
 	global	start
 	goto	start
 	callstack 0
-	line	41
+	line	46
 GLOBAL	__end_of_main
 	__end_of_main:
 	signat	_main,90
@@ -1824,7 +1848,7 @@ _timer0_init:
 	callstack 28
 	line	11
 	
-l1002:
+l1007:
 	clrf	((c:4053))^0f00h,c	;volatile
 	line	12
 	bcf	((c:4053))^0f00h,c,6	;volatile
@@ -1834,7 +1858,7 @@ l1002:
 	bcf	((c:4053))^0f00h,c,3	;volatile
 	line	15
 	
-l1004:
+l1009:
 	movf	((c:4053))^0f00h,c,w	;volatile
 	andlw	not (((1<<3)-1)<<0)
 	iorlw	(02h & ((1<<3)-1))<<0
@@ -1847,23 +1871,23 @@ l1004:
 	movwf	((c:4054))^0f00h,c	;volatile
 	line	21
 	
-l1006:
+l1011:
 	bcf	((c:4082))^0f00h,c,2	;volatile
 	line	22
 	
-l1008:
+l1013:
 	bsf	((c:4082))^0f00h,c,5	;volatile
 	line	24
 	
-l1010:
+l1015:
 	bsf	((c:4082))^0f00h,c,7	;volatile
 	line	26
 	
-l1012:
+l1017:
 	bsf	((c:4053))^0f00h,c,7	;volatile
 	line	28
 	
-l156:
+l159:
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_timer0_init
@@ -1896,6 +1920,7 @@ GLOBAL	__end_of_timer0_init
 ;; Hardware stack levels required when called: 5
 ;; This function calls:
 ;;		NULL
+;;		_led1_task
 ;;		_led_task
 ;; This function is called by:
 ;;		_main
@@ -1915,12 +1940,12 @@ _scheduler_run:
 	callstack 25
 	line	21
 	
-l1124:
+l1133:
 	clrf	((c:scheduler_run@i))^00h,c
-	goto	l1134
+	goto	l1143
 	line	23
 	
-l1126:
+l1135:
 	movf	((c:scheduler_run@i))^00h,c,w
 	mullw	07h
 	movf	(prodl)^0f00h,c,w
@@ -1932,11 +1957,11 @@ l1126:
 	goto	u201
 	goto	u200
 u201:
-	goto	l1132
+	goto	l1141
 u200:
 	line	25
 	
-l1128:
+l1137:
 	movf	((c:scheduler_run@i))^00h,c,w
 	mullw	07h
 	movf	(prodl)^0f00h,c,w
@@ -1946,7 +1971,7 @@ l1128:
 	clrf	indf2
 	line	26
 	
-l1130:
+l1139:
 	movf	((c:scheduler_run@i))^00h,c,w
 	mullw	07h
 	movf	(prodl)^0f00h,c,w
@@ -1969,10 +1994,10 @@ u218:
 	u219:
 	line	28
 	
-l1132:
+l1141:
 	incf	((c:scheduler_run@i))^00h,c
 	
-l1134:
+l1143:
 		movf	((c:_task_count))^00h,c,w
 	subwf	((c:scheduler_run@i))^00h,c,w
 	btfss	status,0
@@ -1980,21 +2005,22 @@ l1134:
 	goto	u220
 
 u221:
-	goto	l1126
+	goto	l1135
 u220:
 	line	29
 	
-l132:
+l135:
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_scheduler_run
 	__end_of_scheduler_run:
 	signat	_scheduler_run,89
 	global	_led_task
+	global	_led1_task
 
-;; *************** function _led_task *****************
+;; *************** function _led1_task *****************
 ;; Defined at:
-;;		line 22 in file "main.c"
+;;		line 27 in file "main.c"
 ;; Parameters:    Size  Location     Type
 ;;		None
 ;; Auto vars:     Size  Location     Type
@@ -2024,19 +2050,75 @@ GLOBAL	__end_of_scheduler_run
 ;;
 psect	text3,class=CODE,space=0,reloc=2,group=0
 	file	"main.c"
-	line	22
+	line	27
 global __ptext3
 __ptext3:
 psect	text3
+	file	"main.c"
+	line	27
+	
+_led1_task:
+;incstack = 0
+	callstack 25
+	line	29
+	
+l1101:
+	movlw	(01h)&0ffh
+	
+	call	_led_toggle
+	line	30
+	
+l32:
+	return	;funcret
+	callstack 0
+GLOBAL	__end_of_led1_task
+	__end_of_led1_task:
+	signat	_led1_task,89
+
+;; *************** function _led_task *****************
+;; Defined at:
+;;		line 22 in file "main.c"
+;; Parameters:    Size  Location     Type
+;;		None
+;; Auto vars:     Size  Location     Type
+;;		None
+;; Return value:  Size  Location     Type
+;;                  1    wreg      void 
+;; Registers used:
+;;		wreg, fsr1l, fsr1h, fsr2l, fsr2h, status,2, status,0, cstack
+;; Tracked objects:
+;;		On entry : 0/0
+;;		On exit  : 0/0
+;;		Unchanged: 0/0
+;; Data sizes:     COMRAM   BANK0   BANK1   BANK2   BANK3   BANK4   BANK5   BANK6   BANK7
+;;      Params:         0       0       0       0       0       0       0       0       0
+;;      Locals:         0       0       0       0       0       0       0       0       0
+;;      Temps:          0       0       0       0       0       0       0       0       0
+;;      Totals:         0       0       0       0       0       0       0       0       0
+;;Total ram usage:        0 bytes
+;; Hardware stack levels used: 1
+;; Hardware stack levels required when called: 3
+;; This function calls:
+;;		_led_toggle
+;; This function is called by:
+;;		_main
+;;		_scheduler_run
+;; This function uses a non-reentrant model
+;;
+psect	text4,class=CODE,space=0,reloc=2,group=0
+	line	22
+global __ptext4
+__ptext4:
+psect	text4
 	file	"main.c"
 	line	22
 	
 _led_task:
 ;incstack = 0
-	callstack 25
+	callstack 26
 	line	24
 	
-l1092:
+l1099:
 	movlw	(0)&0ffh
 	
 	call	_led_toggle
@@ -2072,51 +2154,52 @@ GLOBAL	__end_of_led_task
 ;;      Totals:         1       0       0       0       0       0       0       0       0
 ;;Total ram usage:        1 bytes
 ;; Hardware stack levels used: 1
-;; Hardware stack levels required when called: 3
+;; Hardware stack levels required when called: 2
 ;; This function calls:
 ;;		_gpio_toggle
 ;; This function is called by:
 ;;		_led_task
+;;		_led1_task
 ;; This function uses a non-reentrant model
 ;;
-psect	text4,class=CODE,space=0,reloc=2,group=0
+psect	text5,class=CODE,space=0,reloc=2,group=0
 	file	"src/led.c"
 	line	57
-global __ptext4
-__ptext4:
-psect	text4
+global __ptext5
+__ptext5:
+psect	text5
 	file	"src/led.c"
 	line	57
 	
 _led_toggle:
 ;incstack = 0
-	callstack 25
+	callstack 26
 	movwf	((c:led_toggle@led_id))^00h,c
 	line	58
 	
-l1082:
-	goto	l1090
+l1089:
+	goto	l1097
 	line	61
 	
-l1084:
+l1091:
 		movlw	low(_led1)
 	movwf	((c:gpio_toggle@p))^00h,c
 
 	call	_gpio_toggle	;wreg free
 	line	62
-	goto	l90
+	goto	l93
 	line	64
 	
-l1086:
+l1093:
 		movlw	low(_led2)
 	movwf	((c:gpio_toggle@p))^00h,c
 
 	call	_gpio_toggle	;wreg free
 	line	65
-	goto	l90
+	goto	l93
 	line	68
 	
-l1090:
+l1097:
 	movf	((c:led_toggle@led_id))^00h,c,w
 	; Switch size 1, requested type "simple"
 ; Number of cases is 2, Range of values is 0 to 1
@@ -2127,15 +2210,15 @@ l1090:
 
 	xorlw	0^0	; case 0
 	skipnz
-	goto	l1084
+	goto	l1091
 	xorlw	1^0	; case 1
 	skipnz
-	goto	l1086
-	goto	l90
+	goto	l1093
+	goto	l93
 
 	line	69
 	
-l90:
+l93:
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_led_toggle
@@ -2173,12 +2256,12 @@ GLOBAL	__end_of_led_toggle
 ;;		_led_toggle
 ;; This function uses a non-reentrant model
 ;;
-psect	text5,class=CODE,space=0,reloc=2,group=0
+psect	text6,class=CODE,space=0,reloc=2,group=0
 	file	"src/gpio.c"
 	line	27
-global __ptext5
-__ptext5:
-psect	text5
+global __ptext6
+__ptext6:
+psect	text6
 	file	"src/gpio.c"
 	line	27
 	
@@ -2187,7 +2270,7 @@ _gpio_toggle:
 	callstack 25
 	line	28
 	
-l1078:
+l1085:
 	movf	((c:gpio_toggle@p))^00h,c,w
 	movwf	fsr2l
 	clrf	fsr2h
@@ -2219,7 +2302,7 @@ u144:
 	xorwf	indf2
 	line	29
 	
-l1080:
+l1087:
 	movf	((c:gpio_toggle@p))^00h,c,w
 	movwf	fsr2l
 	clrf	fsr2h
@@ -2242,7 +2325,7 @@ l1080:
 	movff	indf2,indf1
 	line	30
 	
-l116:
+l119:
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_gpio_toggle
@@ -2279,12 +2362,12 @@ GLOBAL	__end_of_gpio_toggle
 ;;		_main
 ;; This function uses a non-reentrant model
 ;;
-psect	text6,class=CODE,space=0,reloc=2,group=0
+psect	text7,class=CODE,space=0,reloc=2,group=0
 	file	"src/scheduler.c"
 	line	6
-global __ptext6
-__ptext6:
-psect	text6
+global __ptext7
+__ptext7:
+psect	text7
 	file	"src/scheduler.c"
 	line	6
 	
@@ -2293,11 +2376,11 @@ _scheduler_init:
 	callstack 28
 	line	8
 	
-l990:
+l995:
 	clrf	((c:scheduler_init@i))^00h,c
 	line	10
 	
-l996:
+l1001:
 	movf	((c:scheduler_init@i))^00h,c,w
 	mullw	07h
 	movf	(prodl)^0f00h,c,w
@@ -2334,25 +2417,25 @@ l996:
 	clrf	indf2
 	line	14
 	
-l998:
+l1003:
 	incf	((c:scheduler_init@i))^00h,c
 	
-l1000:
+l1005:
 		movlw	05h-1
 	cpfsgt	((c:scheduler_init@i))^00h,c
 	goto	u81
 	goto	u80
 
 u81:
-	goto	l996
+	goto	l1001
 u80:
 	
-l124:
+l127:
 	line	16
 	clrf	((c:_task_count))^00h,c
 	line	17
 	
-l125:
+l128:
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_scheduler_init
@@ -2365,7 +2448,7 @@ GLOBAL	__end_of_scheduler_init
 ;;		line 45 in file "src/scheduler.c"
 ;; Parameters:    Size  Location     Type
 ;;  task            2   11[COMRAM] PTR FTN()void 
-;;		 -> led_task(1), 
+;;		 -> led1_task(1), led_task(1), 
 ;;  period_ms       2   13[COMRAM] unsigned short 
 ;; Auto vars:     Size  Location     Type
 ;;		None
@@ -2391,11 +2474,11 @@ GLOBAL	__end_of_scheduler_init
 ;;		_main
 ;; This function uses a non-reentrant model
 ;;
-psect	text7,class=CODE,space=0,reloc=2,group=0
+psect	text8,class=CODE,space=0,reloc=2,group=0
 	line	45
-global __ptext7
-__ptext7:
-psect	text7
+global __ptext8
+__ptext8:
+psect	text8
 	file	"src/scheduler.c"
 	line	45
 	
@@ -2404,19 +2487,19 @@ _scheduler_add_task:
 	callstack 28
 	line	47
 	
-l1114:
+l1123:
 		movlw	05h-1
 	cpfsgt	((c:_task_count))^00h,c
 	goto	u191
 	goto	u190
 
 u191:
-	goto	l1118
+	goto	l1127
 u190:
-	goto	l143
+	goto	l146
 	line	52
 	
-l1118:
+l1127:
 	movf	((c:_task_count))^00h,c,w
 	mullw	07h
 	movf	(prodl)^0f00h,c,w
@@ -2453,11 +2536,11 @@ l1118:
 	clrf	indf2
 	line	57
 	
-l1120:
+l1129:
 	incf	((c:_task_count))^00h,c
 	line	59
 	
-l143:
+l146:
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_scheduler_add_task
@@ -2495,12 +2578,12 @@ GLOBAL	__end_of_scheduler_add_task
 ;;		_main
 ;; This function uses a non-reentrant model
 ;;
-psect	text8,class=CODE,space=0,reloc=2,group=0
+psect	text9,class=CODE,space=0,reloc=2,group=0
 	file	"src/led.c"
 	line	21
-global __ptext8
-__ptext8:
-psect	text8
+global __ptext9
+__ptext9:
+psect	text9
 	file	"src/led.c"
 	line	21
 	
@@ -2509,7 +2592,7 @@ _led_init:
 	callstack 27
 	line	23
 	
-l1108:
+l1117:
 		movlw	low(_led1)
 	movwf	((c:gpio_init@p))^00h,c
 
@@ -2518,7 +2601,7 @@ l1108:
 	call	_gpio_init	;wreg free
 	line	24
 	
-l1110:
+l1119:
 		movlw	low(_led1)
 	movwf	((c:gpio_write@p))^00h,c
 
@@ -2527,7 +2610,7 @@ l1110:
 	call	_gpio_write	;wreg free
 	line	25
 	
-l1112:
+l1121:
 		movlw	low(_led2)
 	movwf	((c:gpio_init@p))^00h,c
 
@@ -2543,7 +2626,7 @@ l1112:
 	call	_gpio_write	;wreg free
 	line	27
 	
-l66:
+l69:
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_led_init
@@ -2584,12 +2667,12 @@ GLOBAL	__end_of_led_init
 ;;		_led_off
 ;; This function uses a non-reentrant model
 ;;
-psect	text9,class=CODE,space=0,reloc=2,group=0
+psect	text10,class=CODE,space=0,reloc=2,group=0
 	file	"src/gpio.c"
 	line	12
-global __ptext9
-__ptext9:
-psect	text9
+global __ptext10
+__ptext10:
+psect	text10
 	file	"src/gpio.c"
 	line	12
 	
@@ -2598,18 +2681,18 @@ _gpio_write:
 	callstack 27
 	line	13
 	
-l1100:
+l1109:
 		decf	((c:gpio_write@level))^00h,c,w
 	btfss	status,2
 	goto	u161
 	goto	u160
 
 u161:
-	goto	l1104
+	goto	l1113
 u160:
 	line	14
 	
-l1102:
+l1111:
 	movf	((c:gpio_write@p))^00h,c,w
 	movwf	fsr2l
 	clrf	fsr2h
@@ -2640,10 +2723,10 @@ u174:
 	movf	((??_gpio_write+1))^00h,c,w
 	iorwf	indf2
 	line	15
-	goto	l1106
+	goto	l1115
 	line	18
 	
-l1104:
+l1113:
 	movf	((c:gpio_write@p))^00h,c,w
 	movwf	fsr2l
 	clrf	fsr2h
@@ -2678,7 +2761,7 @@ u184:
 	andwf	indf2
 	line	20
 	
-l1106:
+l1115:
 	movf	((c:gpio_write@p))^00h,c,w
 	movwf	fsr2l
 	clrf	fsr2h
@@ -2701,7 +2784,7 @@ l1106:
 	movff	indf2,indf1
 	line	21
 	
-l110:
+l113:
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_gpio_write
@@ -2740,11 +2823,11 @@ GLOBAL	__end_of_gpio_write
 ;;		_led_init
 ;; This function uses a non-reentrant model
 ;;
-psect	text10,class=CODE,space=0,reloc=2,group=0
+psect	text11,class=CODE,space=0,reloc=2,group=0
 	line	3
-global __ptext10
-__ptext10:
-psect	text10
+global __ptext11
+__ptext11:
+psect	text11
 	file	"src/gpio.c"
 	line	3
 	
@@ -2753,17 +2836,17 @@ _gpio_init:
 	callstack 27
 	line	4
 	
-l1094:
+l1103:
 	movf	((c:gpio_init@dir))^00h,c,w
 	btfss	status,2
 	goto	u151
 	goto	u150
 u151:
-	goto	l1098
+	goto	l1107
 u150:
 	line	5
 	
-l1096:
+l1105:
 	movf	((c:gpio_init@p))^00h,c,w
 	movwf	fsr2l
 	clrf	fsr2h
@@ -2773,10 +2856,10 @@ l1096:
 	movff	??_gpio_init+0+1,fsr2h
 	clrf	indf2
 	line	6
-	goto	l105
+	goto	l108
 	line	8
 	
-l1098:
+l1107:
 	movf	((c:gpio_init@p))^00h,c,w
 	movwf	fsr2l
 	clrf	fsr2h
@@ -2788,7 +2871,7 @@ l1098:
 	movwf	indf2
 	line	10
 	
-l105:
+l108:
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_gpio_init
@@ -2854,7 +2937,7 @@ int_func:
 	movff	prodh+0,??_isr+5
 	line	10
 	
-i2l1036:
+i2l1041:
 	btfss	((c:4082))^0f00h,c,2	;volatile
 	goto	i2u13_41
 	goto	i2u13_40
@@ -2863,11 +2946,11 @@ i2u13_41:
 i2u13_40:
 	line	12
 	
-i2l1038:
+i2l1043:
 	bcf	((c:4082))^0f00h,c,2	;volatile
 	line	15
 	
-i2l1040:
+i2l1045:
 	movlw	low(0F6h)
 	movwf	((c:4055))^0f00h,c	;volatile
 	line	16
@@ -2875,7 +2958,7 @@ i2l1040:
 	movwf	((c:4054))^0f00h,c	;volatile
 	line	18
 	
-i2l1042:
+i2l1047:
 	call	_scheduler_tick	;wreg free
 	line	20
 	
@@ -2922,12 +3005,12 @@ GLOBAL	__end_of_isr
 ;;		_isr
 ;; This function uses a non-reentrant model
 ;;
-psect	text12,class=CODE,space=0,reloc=2,group=0
+psect	text13,class=CODE,space=0,reloc=2,group=0
 	file	"src/scheduler.c"
 	line	31
-global __ptext12
-__ptext12:
-psect	text12
+global __ptext13
+__ptext13:
+psect	text13
 	file	"src/scheduler.c"
 	line	31
 	
@@ -2936,12 +3019,12 @@ _scheduler_tick:
 	callstack 25
 	line	33
 	
-i2l972:
+i2l977:
 	clrf	((c:scheduler_tick@i))^00h,c
-	goto	i2l982
+	goto	i2l987
 	line	35
 	
-i2l974:
+i2l979:
 	movf	((c:scheduler_tick@i))^00h,c,w
 	mullw	07h
 	movf	(prodl)^0f00h,c,w
@@ -2953,7 +3036,7 @@ i2l974:
 	addwfc	postdec2
 	line	37
 	
-i2l976:
+i2l981:
 	movf	((c:scheduler_tick@i))^00h,c,w
 	mullw	07h
 	movf	(prodl)^0f00h,c,w
@@ -2975,11 +3058,11 @@ i2l976:
 	goto	i2u6_40
 
 i2u6_41:
-	goto	i2l980
+	goto	i2l985
 i2u6_40:
 	line	39
 	
-i2l978:
+i2l983:
 	movf	((c:scheduler_tick@i))^00h,c,w
 	mullw	07h
 	movf	(prodl)^0f00h,c,w
@@ -2999,10 +3082,10 @@ i2l978:
 	movwf	indf2
 	line	42
 	
-i2l980:
+i2l985:
 	incf	((c:scheduler_tick@i))^00h,c
 	
-i2l982:
+i2l987:
 		movf	((c:_task_count))^00h,c,w
 	subwf	((c:scheduler_tick@i))^00h,c,w
 	btfss	status,0
@@ -3010,11 +3093,11 @@ i2l982:
 	goto	i2u7_40
 
 i2u7_41:
-	goto	i2l974
+	goto	i2l979
 i2u7_40:
 	line	43
 	
-i2l139:
+i2l142:
 	return	;funcret
 	callstack 0
 GLOBAL	__end_of_scheduler_tick
