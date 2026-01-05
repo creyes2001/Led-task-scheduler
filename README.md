@@ -95,12 +95,14 @@ project/
 ├── inc/
 │ ├── config.h # Global configuration macros and system settings
 │ ├── gpio.h # GPIO hardware abstraction
+│ ├── timer.h # Timer (Timer0) interface and configuration
 │ ├── scheduler.h # Task scheduler interface
-│ └── led_tasks.h # Application task declarations
+│ └── led.h # LED application task declarations
 ├── src/
 │ ├── gpio.c # GPIO implementation
+│ ├── timer.c # Timer0 initialization and tick generation
 │ ├── scheduler.c # Cooperative scheduler logic
-│ └── led_tasks.c # LED task implementations
+│ └── led.c # LED task implementations
 ├── main.c # System initialization and main loop
 ├── Makefile
 └── README.md
